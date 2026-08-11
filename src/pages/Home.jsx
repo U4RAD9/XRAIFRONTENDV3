@@ -20,7 +20,7 @@ function Home() {
             
             <div className="absolute top-[40px] md:top-[60px] left-6 md:left-12">
               <h1 className="text-white text-2xl md:text-4xl font-bold max-w-2xl">
-                X-Ray at Home services with Xrai Digital
+                X-Ray at Home services with XRAi digital
               </h1>
               <hr className="my-4 w-1/2 border-white/50" />
               <h4 className="text-white text-lg md:text-xl max-w-xl">
@@ -58,7 +58,7 @@ function Home() {
             <img src="https://xraidigital.com/Content/images/services/Xray.jpg" alt="X-Ray" className="w-full h-[200px] object-fill" />
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">Digital Xray At Home</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
-              X-rays are quick, painless, and essential for diagnosing various conditions. With Xrai Digital, you can get professional-grade digital X-rays done without stepping out of your home.
+              X-rays are quick, painless, and essential for diagnosing various conditions. With XRAi digital, you can get professional-grade digital X-rays done without stepping out of your home.
               <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
             </p>
           </div>
@@ -85,7 +85,7 @@ function Home() {
             <img src="https://xraidigital.com/Content/images/services/pft.jpg" alt="PFT" className="w-full h-[200px] object-fill" />
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">PFT</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
-              Assess your lung health with ease. Xrai Digital ensures accurate and efficient PFTs in the comfort of your home, with no disruption to your routine.
+              Assess your lung health with ease. XRAi digital ensures accurate and efficient PFTs in the comfort of your home, with no disruption to your routine.
               <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
             </p>
           </div>
@@ -113,7 +113,7 @@ function Home() {
       {/* Why Choose Xrai Digital Section */}
       <div className="container mx-auto mt-12 mb-6">
         <h2 className="text-2xl md:text-3xl font-bold text-black mb-6 px-6">
-          <i className="fa fa-question-circle text-[#0F847E] mr-2"></i> Why Choose Xrai Digital?
+          <i className="fa fa-question-circle text-[#0F847E] mr-2"></i> Why Choose XRAi digital?
         </h2>
         
         <div className="flex flex-wrap justify-center gap-6 p-4">
@@ -126,7 +126,7 @@ function Home() {
           <div className="relative bg-white rounded-xl shadow-md w-full md:w-[225px] min-h-[218px] p-5 text-left">
             <i className="fa fa-clock absolute top-4 right-4 text-3xl text-[#11A8A4]"></i>
             <h4 className="mt-8 text-lg font-bold text-gray-800">1 minute 1 hour*</h4>
-            <p className="mt-2 text-xs font-bold text-gray-600">Booking health tests takes only a minute with Xrai Digital and reports are provided to you within just an hour.</p>
+            <p className="mt-2 text-xs font-bold text-gray-600">Booking health tests takes only a minute with XRAi digital and reports are provided to you within just an hour.</p>
           </div>
 
           <div className="relative bg-white rounded-xl shadow-md w-full md:w-[225px] min-h-[218px] p-5 text-left">
@@ -144,7 +144,7 @@ function Home() {
 
         <div className="px-6 text-center pt-4">
           <p className="text-[10px] font-medium text-gray-600">
-            <span className="font-extrabold text-[12px]">Note* :</span> 1 minute 1 hour is applicable to selective health tests like Xray, ECG and more. Health tests like PFT and others might take longer and reports may come in due time.Xrai Digital aims to provide the test results soonest possible.
+            <span className="font-extrabold text-[12px]">Note* :</span> 1 minute 1 hour is applicable to selective health tests like Xray, ECG and more. Health tests like PFT and others might take longer and reports may come in due time.XRAi digital aims to provide the test results soonest possible.
           </p>
         </div>
       </div>

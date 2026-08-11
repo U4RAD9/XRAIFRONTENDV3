@@ -10,13 +10,13 @@ const PackageCard = ({
   includes = [],
 }) => {
   return (
-    <div className="relative bg-white rounded-3xl py-2 md:py-2 px-4 md:px-4 shadow-[0_4px_20px_rgb(0,0,0,0.08)] w-[450px] h-[500px] border border-gray-100 overflow-hidden flex flex-col text-left">
+    <div className="relative bg-white rounded-3xl py-2 md:py-2 px-4 md:px-4 shadow-[0_4px_20px_rgb(0,0,0,0.08)] w-[450px] h-[520px] border border-gray-100 overflow-hidden flex flex-col text-left">
       {/* Top Border Curve (simplified with top border) */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#0db9b6] to-[#049391]"></div>
 
       <div className="mt-3 z-10 flex flex-col h-full">
         {/* Header Row: Title on Left, Price & Button on Right */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
           <div className="flex-1">
             <h3 className="text-[20px] md:text-[22px] leading-tight font-bold text-gray-800">{title}</h3>
             <p className="text-[14px] md:text-[16px] font-bold text-[#0db9b6] mt-1">{subtitle}</p>
@@ -24,9 +24,9 @@ const PackageCard = ({
           </div>
           
           <div className="flex flex-col items-start sm:items-end shrink-0">
-            <h4 className="font-extrabold text-2xl md:text-3xl text-[#0db9b6] mb-2">₹ {price}</h4>
-            <Link to="/login" className="bg-gradient-to-r from-[#17c2be] to-[#008f8d] text-white px-4 py-2 rounded-xl font-bold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 text-xs md:text-sm">
-              <Calendar size={16} /> BOOK NOW
+            <h4 className="font-extrabold text-[14px] md:text-[18px] text-[#0db9b6] mb-1">₹ {price}</h4>
+            <Link to="/login" className="bg-gradient-to-r from-[#17c2be] to-[#008f8d] text-white px-2 py-2 rounded-xl font-bold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2 text-xs md:text-[12px]">
+              <Calendar size={14} /> BOOK NOW
             </Link>
           </div>
         </div>
@@ -35,7 +35,7 @@ const PackageCard = ({
         {topFeatures.length > 0 && (
           <div className="bg-[#f8f9fa] rounded-xl p-2 flex flex-wrap justify-between items-center gap-x-4 gap-y-2 mb-2 border border-gray-100/50">
             {topFeatures.map((feat, idx) => (
-              <div key={idx} className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold text-[#112a46] whitespace-nowrap">
+              <div key={idx} className="flex items-center gap-1.5 text-[12px] sm:text-[14px] font-bold text-[#112a46] whitespace-nowrap">
                 <Activity size={12} className="text-[#0db9b6]" />
                 {feat}
               </div>
