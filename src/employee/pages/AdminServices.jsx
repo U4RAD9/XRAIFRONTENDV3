@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Modal from '../components/Modal';
 
 function Services() {
   const [services, setServices] = useState([]);
@@ -9,6 +10,7 @@ function Services() {
   const [showModal, setShowModal] = useState(false);
   const [currentService, setCurrentService] = useState({ service_name: '', service_group: '', is_active: true });
   const [isEditing, setIsEditing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchServicesAndGroups();
@@ -18,8 +20,8 @@ function Services() {
     setLoading(true);
     try {
       const [servicesRes, groupsRes] = await Promise.all([
-        axiosInstance.get(ENDPOINTS.SERVICES),
-        axiosInstance.get(ENDPOINTS.SERVICE_GROUPS)
+        axiosInstance.get(ENDPOINTS.SERVICES).catch(() => ({ data: [] })),
+        axiosInstance.get(ENDPOINTS.SERVICE_GROUPS).catch(() => ({ data: [] }))
       ]);
       setServices(servicesRes.data);
       setServiceGroups(groupsRes.data);
@@ -79,18 +81,28 @@ function Services() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Services Master</h2>
+        <div className="relative w-64">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i className="fas fa-search text-gray-400"></i>
+          </span>
+          <input 
+            type="text" 
+            placeholder="Search Services..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-[#00acc1]"
+          />
+        </div>
         <button onClick={openNewModal} className="bg-[#00acc1] hover:bg-[#008ba3] text-white px-4 py-2 rounded shadow transition-colors duration-200 flex items-center">
           <i className="fas fa-plus mr-2"></i> Add Service
         </button>
       </div>
 
       <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <table className="min-w-full bg-white">
-          <thead className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+          <thead className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="py-4 px-6 text-left font-bold w-24">ID</th>
               <th className="py-4 px-6 text-left font-bold">Service Name</th>
               <th className="py-4 px-6 text-left font-bold">Service Group</th>
               <th className="py-4 px-6 text-left font-bold w-32">Status</th>
@@ -100,18 +112,17 @@ function Services() {
           <tbody className="text-gray-600 divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan="5" className="py-12 text-center text-gray-500 font-semibold">
+                <td colSpan="4" className="py-12 text-center text-gray-500 font-semibold">
                   <i className="fas fa-spinner fa-spin mr-2"></i> Loading...
                 </td>
               </tr>
             ) : services.length === 0 ? (
               <tr>
-                <td colSpan="5" className="py-12 text-center text-gray-500 font-semibold">No services found.</td>
+                <td colSpan="4" className="py-12 text-center text-gray-500 font-semibold">No services found.</td>
               </tr>
             ) : (
-              services.map((svc) => (
+              services.filter(service => service.service_name.toLowerCase().includes(searchQuery.toLowerCase())).map((svc) => (
                 <tr key={svc.service_id} className="hover:bg-blue-50/50 transition duration-150">
-                  <td className="py-4 px-6 font-semibold text-[#00acc1]">#{svc.service_id}</td>
                   <td className="py-4 px-6 font-bold text-gray-800">{svc.service_name}</td>
                   <td className="py-4 px-6 text-gray-600">{getGroupName(svc.service_group)}</td>
                   <td className="py-4 px-6">
@@ -121,10 +132,10 @@ function Services() {
                   </td>
                   <td className="py-4 px-6 text-center">
                     <div className="flex justify-center gap-3">
-                      <button onClick={() => handleEdit(svc)} className="text-blue-600 hover:text-blue-900 transition-colors">
+                      <button onClick={() => handleEdit(svc)} className="cursor-pointer text-[#00acc1] hover:text-[#008ba3] transition-colors">
                         <i className="fas fa-edit"></i>
                       </button>
-                      <button onClick={() => handleDelete(svc.service_id)} className="text-red-600 hover:text-red-900 transition-colors">
+                      <button onClick={() => handleDelete(svc.service_id)} className="cursor-pointer text-red-500 hover:text-red-700 transition-colors">
                         <i className="fas fa-trash"></i>
                       </button>
                     </div>
@@ -136,16 +147,14 @@ function Services() {
         </table>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">{isEditing ? 'Edit Service' : 'Add New Service'}</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+      <Modal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)}
+        title={isEditing ? 'Edit Service' : 'Add New Service'}
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Service Name</label>
                 <input 
@@ -186,18 +195,17 @@ function Services() {
                 <label htmlFor="isActiveService" className="text-sm font-semibold text-gray-700">Is Active</label>
               </div>
               
-              <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-[#00acc1] hover:bg-[#0097a7] text-white font-semibold rounded-lg transition-colors">
-                  {isEditing ? 'Update' : 'Save'}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+          <div className="px-6 py-5 border-t border-gray-100 flex justify-end gap-3 flex-shrink-0 bg-gray-50">
+            <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition-colors cursor-pointer border border-gray-200 bg-white">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 bg-[#00acc1] hover:bg-[#0097a7] text-white font-semibold rounded-lg transition-colors cursor-pointer shadow-sm">
+              {isEditing ? 'Update' : 'Save'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
     </div>
   );

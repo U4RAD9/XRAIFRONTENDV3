@@ -48,6 +48,10 @@ function Login() {
         
         if (res.data.UserType === "Admin") {
           navigate('/admin/dashboard', { replace: true });
+        } else if (res.data.UserType === "Partner") {
+          navigate('/partner/dashboard', { replace: true });
+        } else if (res.data.UserType === "Technician") {
+          navigate('/technician/dashboard', { replace: true });
         } else {
           navigate('/patient/dashboard', { replace: true });
         }

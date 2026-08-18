@@ -1,343 +1,406 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Modal from '../components/Modal';
 
 function AdminOffersMaster() {
-  const [offers, setOffers] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [serviceGroups, setServiceGroups] = useState([]);
-  const [userTypes, setUserTypes] = useState([]);
-  
-  const [showModal, setShowModal] = useState(false);
-  const [currentOffer, setCurrentOffer] = useState(null);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedEditOffer, setSelectedEditOffer] = useState(null);
+
+  const [apiServiceGroups, setApiServiceGroups] = useState([]);
+  const [apiLocations, setApiLocations] = useState([]);
+  const [apiUserTypes, setApiUserTypes] = useState([]);
+  const [apiOffers, setApiOffers] = useState([]);
+
   const [formData, setFormData] = useState({
-    offer_name: '',
-    discount_percent: '',
-    discount_type: 'ItemLevel',
-    user_type: '',
-    effective_date_from: '',
-    effective_date_to: '',
-    is_active: true
+    offerName: '',
+    discount: '',
+    discountType: 'Item Level',
+    serviceGroup: [],
+    location: [],
+    userType: [],
+    effectiveFrom: '',
+    effectiveTo: '',
+    isActive: true
   });
 
-  const [selectedLocations, setSelectedLocations] = useState([]);
-  const [selectedServiceGroups, setSelectedServiceGroups] = useState([]);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchOffers = async () => {
     try {
-      const [oRes, locRes, sgRes, utRes] = await Promise.all([
-        axiosInstance.get(ENDPOINTS.OFFER_MASTER),
-        axiosInstance.get(ENDPOINTS.LOCATIONS),
-        axiosInstance.get(ENDPOINTS.SERVICE_GROUPS),
-        axiosInstance.get(ENDPOINTS.USER_TYPES)
-      ]);
-      
-      setOffers(oRes.data);
-      setLocations(locRes.data);
-      setServiceGroups(sgRes.data);
-      setUserTypes(utRes.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+      const res = await axiosInstance.get(ENDPOINTS.OFFER_MASTER);
+      setApiOffers(res.data);
+    } catch (err) {
+      console.error("Error fetching offers:", err);
     }
   };
 
-  const getUserTypeName = (id) => userTypes.find(ut => ut.user_type_id === id)?.user_type_name || id;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [groupsRes, locsRes, userTypesRes] = await Promise.all([
+          axiosInstance.get(ENDPOINTS.SERVICE_GROUPS).catch(() => ({ data: [] })),
+          axiosInstance.get(ENDPOINTS.LOCATIONS).catch(() => ({ data: [] })),
+          axiosInstance.get(ENDPOINTS.USER_TYPES).catch(() => ({ data: [] }))
+        ]);
+        setApiServiceGroups(groupsRes.data.filter(x => x.is_active !== false));
+        setApiLocations(locsRes.data.filter(x => x.is_active !== false));
+        setApiUserTypes(userTypesRes.data.filter(x => x.is_active !== false));
+      } catch (err) {
+        console.error("Error fetching master data:", err);
+      }
+    };
+    fetchData();
+    fetchOffers();
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...formData,
-        discount_percent: parseFloat(formData.discount_percent) || 0
-      };
-      
-      if (!payload.effective_date_from) payload.effective_date_from = null;
-      if (!payload.effective_date_to) payload.effective_date_to = null;
-      if (!payload.user_type) payload.user_type = null;
-
-      let savedOffer;
-      if (currentOffer) {
-        const res = await axiosInstance.put(`${ENDPOINTS.OFFER_MASTER}${currentOffer.offer_id}/`, payload);
-        savedOffer = res.data;
-        // First delete existing mappings
-        await axiosInstance.get(`${ENDPOINTS.OFFER_LOCATIONS}?offer=${currentOffer.offer_id}`).then(async res => {
-          for(const m of res.data) await axiosInstance.delete(`${ENDPOINTS.OFFER_LOCATIONS}${m.id}/`);
-        });
-        await axiosInstance.get(`${ENDPOINTS.OFFER_SERVICE_GROUPS}?offer=${currentOffer.offer_id}`).then(async res => {
-          for(const m of res.data) await axiosInstance.delete(`${ENDPOINTS.OFFER_SERVICE_GROUPS}${m.id}/`);
+  useEffect(() => {
+    if (showAddModal) {
+      if (selectedEditOffer) {
+        setFormData({
+          offerName: selectedEditOffer.offer_name || '',
+          discount: selectedEditOffer.discount || '',
+          discountType: selectedEditOffer.discount_type || 'Item Level',
+          serviceGroup: selectedEditOffer.service_group || [],
+          location: selectedEditOffer.location || [],
+          userType: selectedEditOffer.user_type || [],
+          effectiveFrom: selectedEditOffer.effective_from || '',
+          effectiveTo: selectedEditOffer.effective_to || '',
+          isActive: selectedEditOffer.is_active !== false
         });
       } else {
-        const res = await axiosInstance.post(ENDPOINTS.OFFER_MASTER, payload);
-        savedOffer = res.data;
+        setFormData({
+          offerName: '',
+          discount: '',
+          discountType: 'Item Level',
+          serviceGroup: [],
+          location: [],
+          userType: [],
+          effectiveFrom: '',
+          effectiveTo: '',
+          isActive: true
+        });
       }
+    }
+  }, [showAddModal, selectedEditOffer]);
 
-      // Save new mappings
-      for (const locId of selectedLocations) {
-        await axiosInstance.post(ENDPOINTS.OFFER_LOCATIONS, { offer: savedOffer.offer_id, location: locId });
-      }
-      for (const sgId of selectedServiceGroups) {
-        await axiosInstance.post(ENDPOINTS.OFFER_SERVICE_GROUPS, { offer: savedOffer.offer_id, service_group: sgId });
-      }
+  const handleChange = (e) => {
+    const { name, value, type, checked, options } = e.target;
+    
+    if (type === 'select-multiple') {
+      const selectedValues = Array.from(options).filter(opt => opt.selected).map(opt => parseInt(opt.value));
+      setFormData(prev => ({
+        ...prev,
+        [name]: selectedValues
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
+  };
 
-      setShowModal(false);
-      fetchData();
-    } catch (error) {
-      console.error('Error saving:', error);
-      alert('Error saving data');
+  const handleSave = async () => {
+    if (!formData.offerName || !formData.discount) {
+      alert("Please fill required fields (Name, Discount)");
+      return;
+    }
+
+    const payload = {
+      offer_name: formData.offerName,
+      discount: formData.discount,
+      discount_type: formData.discountType,
+      service_group: formData.serviceGroup,
+      location: formData.location,
+      user_type: formData.userType,
+      effective_from: formData.effectiveFrom || null,
+      effective_to: formData.effectiveTo || null,
+      is_active: formData.isActive
+    };
+
+    try {
+      if (selectedEditOffer) {
+        await axiosInstance.put(`${ENDPOINTS.OFFER_MASTER}${selectedEditOffer.id}/`, payload);
+      } else {
+        await axiosInstance.post(ENDPOINTS.OFFER_MASTER, payload);
+      }
+      setShowAddModal(false);
+      fetchOffers();
+    } catch (err) {
+      console.error("Error saving offer:", err);
+      alert("Failed to save offer");
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this offer?')) {
+    if (window.confirm("Are you sure you want to delete this offer?")) {
       try {
         await axiosInstance.delete(`${ENDPOINTS.OFFER_MASTER}${id}/`);
-        fetchData();
-      } catch (error) {
-        console.error('Error deleting:', error);
+        fetchOffers();
+      } catch (err) {
+        console.error("Error deleting offer:", err);
+        alert("Failed to delete offer");
       }
     }
   };
 
-  const openEditModal = async (offer) => {
-    setCurrentOffer(offer);
-    setFormData({
-      offer_name: offer.offer_name,
-      discount_percent: offer.discount_percent,
-      discount_type: offer.discount_type,
-      user_type: offer.user_type || '',
-      effective_date_from: offer.effective_date_from || '',
-      effective_date_to: offer.effective_date_to || '',
-      is_active: offer.is_active
-    });
+  const columns = [
+    { key: 'offer_name', label: 'OFFER NAME' },
+    { key: 'discount', label: 'DISCOUNT' },
+    { key: 'effective_from', label: 'EFFECTIVE FROM' },
+    { key: 'effective_to', label: 'EFFECTIVE TO' },
+    { key: 'service_group_name', label: 'SERVICE GROUP' },
+    { key: 'location_name', label: 'LOCATION' },
+    { key: 'user_type_name', label: 'USER TYPE' },
+    { key: 'is_active', label: 'STATUS' }
+  ];
 
-    try {
-      const [locRes, sgRes] = await Promise.all([
-        axiosInstance.get(`${ENDPOINTS.OFFER_LOCATIONS}?offer=${offer.offer_id}`),
-        axiosInstance.get(`${ENDPOINTS.OFFER_SERVICE_GROUPS}?offer=${offer.offer_id}`)
-      ]);
-      setSelectedLocations(locRes.data.map(m => m.location.toString()));
-      setSelectedServiceGroups(sgRes.data.map(m => m.service_group.toString()));
-    } catch (error) {
-      console.error('Error fetching mappings', error);
-    }
-    setShowModal(true);
-  };
+  const filteredOffers = apiOffers.filter(o => 
+    o.offer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    o.location_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div>
+    <div className='w-full'>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Offers Master</h2>
-        <button
-          onClick={() => {
-            setCurrentOffer(null);
-            setFormData({ offer_name: '', discount_percent: '', discount_type: 'ItemLevel', user_type: '', effective_date_from: '', effective_date_to: '', is_active: true });
-            setSelectedLocations([]);
-            setSelectedServiceGroups([]);
-            setShowModal(true);
-          }}
-          className="bg-[#00acc1] hover:bg-[#008ba3] text-white px-4 py-2 rounded shadow transition-colors duration-200"
+        {/* Left Side: Search */}
+        <div className="relative w-64">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i className="fas fa-search text-gray-400"></i>
+          </span>
+          <input 
+            type="text" 
+            placeholder="Search Offers..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-[#00acc1]"
+          />
+        </div>
+
+        {/* Right Side: Add Button */}
+        <button 
+          onClick={() => { setSelectedEditOffer(null); setShowAddModal(true); }}
+          className="cursor-pointer bg-[#00acc1] hover:bg-[#008ba3] text-white font-semibold py-2 px-4 rounded-lg flex items-center shadow-sm transition-colors"
         >
-          Add New Offer
+          <i className="fas fa-plus mr-2"></i> Add New
         </button>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      <div className="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <table className="min-w-full bg-white whitespace-nowrap">
+            <thead className="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offer Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valid From</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valid To</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                {columns.map(col => (
+                  <th key={col.key} className="py-3 px-4 text-center font-bold border-b border-gray-200">
+                    {col.label}
+                  </th>
+                ))}
+                <th className="py-3 px-4 text-center font-bold border-b border-gray-200">ACTION</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {offers.map((offer) => (
-                <tr key={offer.offer_id} className="hover:bg-gray-50 transition-colors duration-150">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{offer.offer_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">{offer.discount_percent}%</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.discount_type === 'ItemLevel' ? 'Item Level' : 'Invoice Level'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getUserTypeName(offer.user_type) || 'All'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.effective_date_from || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.effective_date_to || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${offer.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {offer.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => openEditModal(offer)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(offer.offer_id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {offers.length === 0 && (
+            <tbody className="text-gray-600 divide-y divide-gray-100 text-sm">
+              {filteredOffers.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No offers found</td>
+                  <td colSpan={columns.length + 1} className="py-8 text-center text-gray-500">
+                    No offers found.
+                  </td>
                 </tr>
+              ) : (
+                filteredOffers.map(offer => (
+                  <tr key={offer.id} className="hover:bg-blue-50 transition-colors duration-150">
+                    {columns.map(col => (
+                      <td key={col.key} className="py-3 px-4 text-center">
+                        {col.key === 'is_active' ? (
+                          <input 
+                            type="checkbox" 
+                            checked={offer.is_active} 
+                            readOnly 
+                            className="cursor-not-allowed w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        ) : (
+                          offer[col.key]
+                        )}
+                      </td>
+                    ))}
+                    <td className="py-3 px-4 text-center">
+                      <button 
+                        onClick={() => { setSelectedEditOffer(offer); setShowAddModal(true); }}
+                        className="cursor-pointer text-[#00acc1] hover:text-[#008ba3] mx-1" 
+                        title="Edit"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button onClick={() => handleDelete(offer.id)} className="cursor-pointer text-red-500 hover:text-red-700 mx-1" title="Delete">
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-          <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">{currentOffer ? 'Edit' : 'Add'} Offer</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-3 gap-4 mb-4">
+      {/* Add / Edit Modal */}
+      <Modal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)}
+        title={selectedEditOffer ? 'Edit Offer' : 'Add New Offer'}
+        maxWidth="max-w-3xl"
+      >
+        <div className="px-8 py-6 overflow-y-auto [scrollbar-width:none]">
+              <div className="grid grid-cols-3 gap-x-6 gap-y-6">
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Offer Name</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1]"
-                    value={formData.offer_name}
-                    onChange={(e) => setFormData({...formData, offer_name: e.target.value})}
-                    required
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Offer Name</label>
+                  <input 
+                    type="text" 
+                    name="offerName"
+                    placeholder="Enter Offer Name"
+                    value={formData.offerName}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Discount (%)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1]"
-                    value={formData.discount_percent}
-                    onChange={(e) => setFormData({...formData, discount_percent: e.target.value})}
-                    required
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Discount (%)</label>
+                  <input 
+                    type="text" 
+                    name="discount"
+                    placeholder="Enter Discount"
+                    value={formData.discount}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Discount Type</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1]"
-                    value={formData.discount_type}
-                    onChange={(e) => setFormData({...formData, discount_type: e.target.value})}
-                    required
-                  >
-                    <option value="ItemLevel">Item Level</option>
-                    <option value="InvoiceLevel">Invoice Level</option>
-                  </select>
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Discount Type</label>
+                  <div className="relative">
+                    <select 
+                      name="discountType"
+                      value={formData.discountType}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e] appearance-none bg-white"
+                    >
+                      <option value="Item Level">Item Level</option>
+                      <option value="Invoice Level">Invoice Level</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                      <i className="fas fa-chevron-down text-xs"></i>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Service Group</label>
+                  <div className="relative">
+                    <select 
+                      name="serviceGroup"
+                      value={formData.serviceGroup}
+                      onChange={handleChange}
+                      multiple
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e] bg-white min-h-[100px]"
+                    >
+                      {apiServiceGroups.map(group => {
+                        const groupId = group.id || group.service_group_id || group._id;
+                        return (
+                          <option key={groupId} value={groupId}>
+                            {group.service_group_name || group.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Locations</label>
+                  <div className="relative">
+                    <select 
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      multiple
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e] bg-white min-h-[100px]"
+                    >
+                      {apiLocations.map(loc => {
+                        const locId = loc.id || loc.location_id || loc._id;
+                        return (
+                          <option key={locId} value={locId}>
+                            {loc.location_name || loc.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">User Type</label>
+                  <div className="relative">
+                    <select 
+                      name="userType"
+                      value={formData.userType}
+                      onChange={handleChange}
+                      multiple
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e] bg-white min-h-[100px]"
+                    >
+                      {apiUserTypes.map(ut => {
+                        const utId = ut.id || ut.user_type_id || ut._id;
+                        return (
+                          <option key={utId} value={utId}>
+                            {ut.user_type || ut.user_type_name || ut.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="col-span-1">
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Effective From</label>
+                  <input 
+                    type="date" 
+                    name="effectiveFrom"
+                    value={formData.effectiveFrom}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e] uppercase"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-bold text-[#35435e] mb-2">Effective To</label>
+                  <input 
+                    type="date" 
+                    name="effectiveTo"
+                    value={formData.effectiveTo}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:border-[#35435e] uppercase"
+                  />
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-6 mb-4">
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Service Groups (Hold Ctrl/Cmd to multi-select)</label>
-                  <select
-                    multiple
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1] h-32"
-                    value={selectedServiceGroups}
-                    onChange={(e) => setSelectedServiceGroups(Array.from(e.target.selectedOptions, option => option.value))}
-                  >
-                    {serviceGroups.map(sg => (
-                      <option key={sg.service_group_id} value={sg.service_group_id}>{sg.service_group_name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Locations (Hold Ctrl/Cmd to multi-select)</label>
-                  <select
-                    multiple
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1] h-32"
-                    value={selectedLocations}
-                    onChange={(e) => setSelectedLocations(Array.from(e.target.selectedOptions, option => option.value))}
-                  >
-                    {locations.map(loc => (
-                      <option key={loc.location_id} value={loc.location_id}>{loc.location_name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">User Type</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1]"
-                    value={formData.user_type}
-                    onChange={(e) => setFormData({...formData, user_type: e.target.value})}
-                  >
-                    <option value="">-- All User Types --</option>
-                    {userTypes.map(ut => (
-                      <option key={ut.user_type_id} value={ut.user_type_id}>{ut.user_type_name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Effective From</label>
-                  <input
-                    type="date"
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1]"
-                    value={formData.effective_date_from}
-                    onChange={(e) => setFormData({...formData, effective_date_from: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Effective To</label>
-                  <input
-                    type="date"
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-[#00acc1]"
-                    value={formData.effective_date_to}
-                    onChange={(e) => setFormData({...formData, effective_date_to: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <span className="text-gray-700 font-bold">Active</span>
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-5 w-5 text-[#00acc1] rounded focus:ring-[#00acc1]"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                  />
+              
+              <div className="mt-6 flex items-center">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleChange} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#35435e]"></div>
+                  <span className="ml-3 text-sm font-medium text-[#35435e]">Active</span>
                 </label>
               </div>
+            </div>
 
-              <div className="flex justify-end gap-2 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded shadow transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#00acc1] hover:bg-[#008ba3] text-white px-6 py-2 rounded shadow transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="px-6 py-5 border-t border-gray-100 flex justify-end gap-4 flex-shrink-0 bg-gray-50">
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="cursor-pointer px-6 py-2 border border-gray-200 text-[#5a6a85] font-bold rounded shadow-sm hover:bg-gray-50 transition-colors bg-white uppercase"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSave}
+                className="cursor-pointer px-6 py-2 bg-[#2a8bf2] text-white font-bold rounded shadow-sm hover:bg-[#1a7ae1] transition-colors uppercase"
+              >
+                Save
+              </button>
+            </div>
+      </Modal>
     </div>
   );
 }

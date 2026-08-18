@@ -20,7 +20,7 @@ function ContactUs() {
   };
 
   return (
-    <div className=" min-h-screen">
+    <div className="h-[auto]">
       {/* Breadcrumb section */}
       <div className="pt-1 pb-4">
         <div className="container mx-auto px-6">

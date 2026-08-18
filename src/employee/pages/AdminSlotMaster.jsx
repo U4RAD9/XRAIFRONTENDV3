@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
+import { ENDPOINTS } from '../../api/endpoints';
+import Modal from '../components/Modal';
 
 function AdminSlotMaster() {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [currentSlot, setCurrentSlot] = useState({ slot_name: '', is_active: true, order_no: 0 });
+  const [currentSlot, setCurrentSlot] = useState({ slot_name: '', is_active: true });
   const [isEditing, setIsEditing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchSlots();
@@ -15,7 +18,7 @@ function AdminSlotMaster() {
   const fetchSlots = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/slot-master/');
+      const res = await axiosInstance.get(ENDPOINTS.SLOT_MASTER);
       setSlots(res.data);
     } catch (err) {
       console.error('Error fetching slots', err);
@@ -32,10 +35,10 @@ function AdminSlotMaster() {
     }
     try {
       if (isEditing) {
-        await axios.put(`http://127.0.0.1:8000/api/slot-master/${currentSlot.slot_id}/`, currentSlot);
+        await axiosInstance.put(`${ENDPOINTS.SLOT_MASTER}${currentSlot.slot_id}/`, currentSlot);
         alert('Slot updated successfully');
       } else {
-        await axios.post('http://127.0.0.1:8000/api/slot-master/', currentSlot);
+        await axiosInstance.post(ENDPOINTS.SLOT_MASTER, currentSlot);
         alert('Slot added successfully');
       }
       setShowModal(false);
@@ -55,7 +58,7 @@ function AdminSlotMaster() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this slot detail?")) {
       try {
-        await axios.delete(`http://127.0.0.1:8000/api/slot-master/${id}/`);
+        await axiosInstance.delete(`${ENDPOINTS.SLOT_MASTER}${id}/`);
         fetchSlots();
       } catch (err) {
         console.error('Error deleting slot', err);
@@ -65,7 +68,7 @@ function AdminSlotMaster() {
   };
 
   const openNewModal = () => {
-    setCurrentSlot({ slot_name: '', is_active: true, order_no: 0 });
+    setCurrentSlot({ slot_name: '', is_active: true });
     setIsEditing(false);
     setShowModal(true);
   };
@@ -73,7 +76,18 @@ function AdminSlotMaster() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">List of Slots</h2>
+        <div className="relative w-64">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i className="fas fa-search text-gray-400"></i>
+          </span>
+          <input 
+            type="text" 
+            placeholder="Search Slots..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-[#00acc1]"
+          />
+        </div>
         <button onClick={openNewModal} className="bg-[#00acc1] hover:bg-[#008ba3] text-white px-4 py-2 rounded shadow transition-colors duration-200 flex items-center">
           <i className="fas fa-plus mr-2"></i> Add Slot
         </button>
@@ -84,9 +98,9 @@ function AdminSlotMaster() {
           <table className="min-w-full bg-white">
           <thead className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
             <tr>
-              <th className="py-4 px-6 text-center font-bold">Slot Name</th>
-              <th className="py-4 px-6 text-center font-bold">Active</th>
-              <th className="py-4 px-6 text-center font-bold w-48" colSpan="3">Actions</th>
+              <th className="py-4 px-6 text-start font-bold">Slot Name</th>
+              <th className="py-4 px-6 text-start font-bold">Active</th>
+              <th className="py-4 px-6 text-center font-bold w-48">Actions</th>
             </tr>
           </thead>
           <tbody className="text-gray-600 divide-y divide-gray-100">
@@ -101,28 +115,23 @@ function AdminSlotMaster() {
                 <td colSpan="5" className="py-12 text-center text-gray-500 font-semibold">No slots found.</td>
               </tr>
             ) : (
-              slots.map((slot) => (
+              slots.filter(slot => slot.slot_name.toLowerCase().includes(searchQuery.toLowerCase())).map((slot) => (
                 <tr key={slot.slot_id} className="hover:bg-blue-50/50 transition duration-150">
-                  <td className="py-4 px-6 text-center font-bold text-gray-800">{slot.slot_name}</td>
-                  <td className="py-4 px-6 text-center">
+                  <td className="py-4 px-6 text-start font-bold text-gray-800">{slot.slot_name}</td>
+                  <td className="py-4 px-6 text-start">
                     <span className={`px-3 py-1 text-xs font-bold ${slot.is_active ? 'text-gray-800' : 'text-gray-400'}`}>
                       {slot.is_active ? 'True' : 'False'}
                     </span>
                   </td>
-                  <td className="py-4 px-2 text-center">
-                    <button onClick={() => handleEdit(slot)} className="text-xs font-bold btn btn-dark bg-gray-800 text-white px-3 py-1 rounded transition-colors hover:bg-gray-700">
-                      Edit
-                    </button>
-                  </td>
-                  <td className="py-4 px-2 text-center">
-                    <button onClick={() => handleEdit(slot)} className="text-xs font-bold btn btn-warning bg-yellow-500 text-white px-3 py-1 rounded transition-colors hover:bg-yellow-600">
-                      Details
-                    </button>
-                  </td>
-                  <td className="py-4 px-2 text-center">
-                    <button onClick={() => handleDelete(slot.slot_id)} className="text-xs font-bold btn btn-danger bg-red-600 text-white px-3 py-1 rounded transition-colors hover:bg-red-700">
-                      Delete
-                    </button>
+                  <td className="py-4 px-6 text-center">
+                    <div className="flex justify-center gap-4">
+                      <button onClick={() => handleEdit(slot)} className="cursor-pointer text-[#00acc1] hover:text-[#008ba3] transition-colors" title="Edit">
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button onClick={() => handleDelete(slot.slot_id)} className="cursor-pointer text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -131,17 +140,15 @@ function AdminSlotMaster() {
         </table>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h4 className="text-xl font-bold text-gray-800">{isEditing ? 'Update Slot' : 'Add Slot'}</h4>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <form onSubmit={handleSave} className="p-6">
-              <div className="mb-4">
+      <Modal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)}
+        title={isEditing ? 'Update Slot' : 'Add Slot'}
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+            <div className="mb-4">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Slot Name</label>
                 <input 
                   type="text" 
@@ -164,31 +171,17 @@ function AdminSlotMaster() {
                 <label htmlFor="isActiveSlot" className="text-sm font-semibold text-gray-700">Active</label>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Order Number (Optional)</label>
-                <input 
-                  type="number" 
-                  value={currentSlot.order_no}
-                  onChange={(e) => setCurrentSlot({...currentSlot, order_no: e.target.value})}
-                  className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#00acc1]"
-                  placeholder="0"
-                />
               </div>
-              
-              <div className="flex mt-6">
-                <button type="submit" className="px-4 py-2 bg-[#00acc1] hover:bg-[#0097a7] text-white font-semibold rounded transition-colors">
-                  Save
-                </button>
-              </div>
-            </form>
-            <div className="px-6 py-3 border-t border-gray-100 flex justify-end">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 rounded transition-colors">
-                  Close
-                </button>
-            </div>
+          <div className="px-6 py-5 border-t border-gray-100 flex justify-end gap-4 flex-shrink-0 bg-gray-50">
+            <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+              Close
+            </button>
+            <button type="submit" className="px-6 py-2 bg-[#00acc1] hover:bg-[#0097a7] text-white font-semibold rounded-lg shadow transition-colors cursor-pointer">
+              Save
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </div>
     </div>
   );

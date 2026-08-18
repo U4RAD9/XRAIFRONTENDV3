@@ -39,18 +39,21 @@ function AdminDashboard() {
     setLoadingBookings(true);
     try {
       const res = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS);
-      setBookings(res.data);
+      if (res.data.Success) {
+        setBookings(res.data.result || []);
+      } else {
+        setBookings(res.data || []);
+      }
     } catch (err) {
       console.error('Failed to fetch admin bookings', err);
     } finally {
       setLoadingBookings(false);
     }
   };
-
   const filteredBookings = bookings.filter(b => 
-    b.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.phone_number?.includes(searchTerm) ||
-    b.slot_booking_id?.toString().includes(searchTerm)
+    b.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    b.phoneNo?.includes(searchTerm) ||
+    b.id?.toString().includes(searchTerm)
   );
 
   return (
@@ -168,6 +171,7 @@ function AdminDashboard() {
                 <th className="py-4 px-6 text-left font-bold">Patient Details</th>
                 <th className="py-4 px-6 text-left font-bold">Location</th>
                 <th className="py-4 px-6 text-left font-bold">Payment</th>
+                <th className="py-4 px-6 text-left font-bold">Technician</th>
                 <th className="py-4 px-6 text-left font-bold">Status</th>
                 <th className="py-4 px-6 text-center font-bold">Actions</th>
               </tr>
@@ -175,28 +179,29 @@ function AdminDashboard() {
             <tbody className="text-gray-600 divide-y divide-gray-100">
               {loadingBookings ? (
                 <tr>
-                  <td colSpan="7" className="py-12 text-center text-gray-500 font-semibold">
+                  <td colSpan="8" className="py-12 text-center text-gray-500 font-semibold">
                     <i className="fas fa-spinner fa-spin mr-2"></i> Loading data...
                   </td>
                 </tr>
               ) : filteredBookings.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-12 text-center text-gray-500 font-semibold">No bookings found.</td>
+                  <td colSpan="8" className="py-12 text-center text-gray-500 font-semibold">No bookings found.</td>
                 </tr>
               ) : (
                 filteredBookings.map((booking, idx) => (
                   <tr key={idx} className="hover:bg-blue-50/50 transition duration-150">
-                    <td className="py-4 px-6 font-semibold text-[#00acc1]">#{booking.slot_booking_id}</td>
-                    <td className="py-4 px-6 text-sm">{new Date(booking.slot_booking_datetime).toLocaleString()}</td>
+                    <td className="py-4 px-6 font-semibold text-[#00acc1]">#{booking.id}</td>
+                    <td className="py-4 px-6 text-sm">{booking.date} {booking.time}</td>
                     <td className="py-4 px-6">
-                      <div className="font-bold text-gray-800">{booking.patient_name}</div>
-                      <div className="text-xs text-gray-500 mt-1"><i className="fas fa-phone-alt mr-1"></i> {booking.phone_number}</div>
+                      <div className="font-bold text-gray-800">{booking.patientName}</div>
+                      <div className="text-xs text-gray-500 mt-1"><i className="fas fa-phone-alt mr-1"></i> {booking.phoneNo}</div>
                     </td>
-                    <td className="py-4 px-6 text-sm">{booking.location__location_name || 'N/A'}</td>
+                    <td className="py-4 px-6 text-sm">{booking.address || 'N/A'}</td>
                     <td className="py-4 px-6">
-                      <div className="font-bold text-gray-800">₹{booking.net_amount}</div>
-                      <div className="text-xs text-gray-500 mt-1">{booking.payment_method}</div>
+                      <div className="font-bold text-gray-800">₹{booking.amount}</div>
+                      <div className="text-xs text-gray-500 mt-1">{booking.paymentMethod}</div>
                     </td>
+                    <td className="py-4 px-6 font-semibold">{booking.technician}</td>
                     <td className="py-4 px-6">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         booking.status === 'Booked' ? 'bg-blue-100 text-blue-700' : 

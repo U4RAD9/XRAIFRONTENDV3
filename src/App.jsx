@@ -11,6 +11,13 @@ import PatientLayout from './patients/components/PatientLayout';
 import Pricing from './pages/Pricing';
 import Corporate from './pages/Corporate';
 import SlotBooking from './patients/pages/SlotBooking';
+import PartnerLayout from './partner/components/PartnerLayout';
+import PartnerDashboard from './partner/pages/PartnerDashboard';
+import PartnerBooking from './partner/pages/PartnerBooking';
+import PartnerDummyPage from './partner/pages/PartnerDummyPage';
+import TechnicianLayout from './technician/components/TechnicianLayout';
+import TechnicianDashboard from './technician/pages/TechnicianDashboard';
+import TechnicianEditBooking from './technician/pages/TechnicianEditBooking';
 import About from './pages/About';
 import ContactUs from './pages/ContactUs';
 import Services from './pages/Services';
@@ -23,6 +30,15 @@ import AdminServices from './employee/pages/AdminServices';
 import AdminPriceRateMaster from './employee/pages/AdminPriceRateMaster';
 import AdminOffersMaster from './employee/pages/AdminOffersMaster';
 import AdminSlotMaster from './employee/pages/AdminSlotMaster';
+import AdminBookings from './employee/pages/AdminBookings';
+import AdminTechnicianSummaryReport from './employee/pages/AdminTechnicianSummaryReport';
+import AdminEditBooking from './employee/pages/AdminEditBooking';
+import AdminMakeBooking from './employee/pages/AdminMakeBooking';
+import AdminBookingReport from './employee/pages/AdminBookingReport';
+import AdminRegistrationTypes from './employee/pages/AdminRegistrationTypes';
+import AdminServiceProviders from './employee/pages/AdminServiceProviders';
+import AdminManageUsers from './employee/pages/AdminManageUsers';
+import AdminPatients from './employee/pages/AdminPatients';
 
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
@@ -56,6 +72,17 @@ function App() {
           <Route path="book-slot" element={<SlotBooking />} />
         </Route>
 
+        <Route path="/partner" element={<PartnerLayout />}>
+          <Route path="dashboard" element={<PartnerDashboard />} />
+          <Route path="booking" element={<PartnerBooking />} />
+          <Route path="dummy-page" element={<PartnerDummyPage />} />
+        </Route>
+
+        <Route path="/technician" element={<TechnicianLayout />}>
+          <Route path="dashboard" element={<TechnicianDashboard />} />
+          <Route path="edit-booking/:id" element={<TechnicianEditBooking />} />
+        </Route>
+
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="locations" element={<AdminLocations />} />
@@ -64,6 +91,15 @@ function App() {
           <Route path="price-rate-master" element={<AdminPriceRateMaster />} />
           <Route path="offers-master" element={<AdminOffersMaster />} />
           <Route path="slot-master" element={<AdminSlotMaster />} />
+          <Route path="bookings" element={<AdminBookings />} />
+          <Route path="bookings/edit/:id" element={<AdminEditBooking />} />
+          <Route path="technician-summary-report" element={<AdminTechnicianSummaryReport />} />
+          <Route path="make-booking" element={<AdminMakeBooking />} />
+          <Route path="booking-report" element={<AdminBookingReport />} />
+          <Route path="registration-types" element={<AdminRegistrationTypes />} />
+          <Route path="service-providers" element={<AdminServiceProviders />} />
+          <Route path="manage-users" element={<AdminManageUsers />} />
+          <Route path="patients" element={<AdminPatients />} />
         </Route>
       </Routes>
     </Router>

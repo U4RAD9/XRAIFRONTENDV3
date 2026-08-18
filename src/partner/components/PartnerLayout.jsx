@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import PatientSidebar from './PatientSidebar';
+import PartnerSidebar from './PartnerSidebar';
 
-function PatientLayout() {
+function PartnerLayout() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
+    // Optionally check if the user is a Partner, or remove check for dummy setup
+    /*
     const userType = sessionStorage.getItem('UserType');
-    if (userType !== 'Patient') {
+    if (userType !== 'Partner') {
       navigate('/login');
       return;
     }
-    const storedName = sessionStorage.getItem('FullName') || sessionStorage.getItem('UserName') || 'Patient';
+    */
+    const storedName = sessionStorage.getItem('FullName') || sessionStorage.getItem('UserName') || 'Partner';
     setUserName(storedName);
   }, [navigate]);
 
@@ -27,7 +30,7 @@ function PatientLayout() {
 
   return (
     <div className="flex min-h-screen bg-gray-100 font-sans">
-      <PatientSidebar 
+      <PartnerSidebar 
         isSidebarOpen={isSidebarOpen} 
         setIsSidebarOpen={setIsSidebarOpen} 
         handleLogout={handleLogout} 
@@ -64,5 +67,4 @@ function PatientLayout() {
   );
 }
 
-export default PatientLayout;
-
+export default PartnerLayout;

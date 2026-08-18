@@ -14,33 +14,68 @@ function Home() {
     <div className="bg-[#f8f9fa] w-full font-sans">
       {/* Hero Banner Section */}
       <section className="w-full bg-[#f8f9fa]">
-        <div className="container mx-auto px-6 pt-4">
-          <div className="relative w-full h-[300px] md:h-[400px] bg-cover bg-center rounded-lg shadow-md overflow-hidden" 
-               style={{ backgroundImage: "url('https://xraidigital.com/Content/images/slider/Xrai%20Slider%20Img4.jpg')" }}>
+        <div className="container mx-auto px-2 md:px-6 pt-2 md:pt-4">
+          <div className="relative w-full rounded-lg shadow-md overflow-hidden bg-white flex flex-col">
             
-            <div className="absolute top-[40px] md:top-[60px] left-6 md:left-12">
-              <h1 className="text-white text-2xl md:text-4xl font-bold max-w-2xl">
-                X-Ray at Home services with XRAi digital
-              </h1>
-              <hr className="my-4 w-1/2 border-white/50" />
-              <h4 className="text-white text-lg md:text-xl max-w-xl">
-                Expert At-Home Health Test with<br />Quick and reliable provided within hours!
-              </h4>
+            {/* Top Image Slider Section */}
+            <div className="relative w-full h-[300px] md:h-[400px]">
+              <div className="absolute inset-0 z-0">
+                <Swiper
+                  modules={[Autoplay, Pagination, Navigation]}
+                  autoplay={{ delay: 3000, disableOnInteraction: false }}
+                  loop={true}
+                  className="w-full h-full"
+                >
+                  {[
+                    "/Content/images/xrayAtHome.jpeg",
+                    "/Content/images/ecgAtHome.jpeg",
+                    "/Content/images/xrayAtHome.jpeg",
+                    "/Content/images/ecgAtHome.jpeg"
+                  ].map((imgUrl, index) => (
+                    <SwiperSlide key={index}>
+                      <div 
+                        className="w-full h-full bg-cover bg-center"
+                        style={{ backgroundImage: `url('${imgUrl}')` }}
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+
+              {/* Static Content Overlay */}
+              <div className="absolute top-[40px] md:top-[60px] left-6 md:left-12 z-10 pointer-events-none">
+                <h1 className="text-white text-2xl md:text-4xl font-bold max-w-2xl drop-shadow-md">
+                  X-Ray at Home services with XRAi digital
+                </h1>
+                <hr className="my-4 w-1/2 border-white/50" />
+                <h4 className="text-white text-lg md:text-xl max-w-xl drop-shadow-md">
+                  Expert At-Home Health Test with<br />Quick and reliable provided within hours!
+                </h4>
+              </div>
             </div>
 
-            {/* Banner Icons */}
-            <div className="absolute bottom-1.5 right-1.5 md:right-10 bg-black/60 p-4 rounded-xl flex gap-6 items-center">
-              <div className="text-center text-white">
-                <i className="fa fa-hospital-alt text-3xl mb-1"></i>
-                <p className="text-sm font-semibold">At Home Health Test</p>
-              </div>
-              <div className="text-center text-white">
-                <i className="fa fa-hospital-user text-3xl mb-1"></i>
-                <p className="text-sm font-semibold">Health Check ups</p>
-              </div>
-              <div className="text-center text-white">
-                <i className="fa fa-building text-3xl mb-1"></i>
-                <p className="text-sm font-semibold">Corporate Health Packages</p>
+            {/* Bottom White Banner Section */}
+            <div className="relative w-full h-[90px] md:h-[110px] bg-white flex items-center justify-end pr-4 md:pr-16">
+              {/* Teal Curve on the left */}
+              <div 
+                className="absolute left-0 top-0 h-full bg-[#11A8A4] w-[200px] md:w-[450px]"
+                style={{ borderTopRightRadius: '100%' }}
+              ></div>
+
+              {/* Banner Icons */}
+              <div className="relative z-10 flex gap-3 sm:gap-6 md:gap-14 items-center pt-2">
+                <div className="text-center">
+                  <i className="fa fa-hospital-alt text-xl md:text-2xl text-blue-500 mb-1"></i>
+                  <p className="text-[11px] md:text-[13px] font-semibold text-gray-500">At Home<br/>Health Test</p>
+                </div>
+                <div className="text-center">
+                  <i className="fa fa-hospital-user text-xl md:text-2xl text-blue-500 mb-1"></i>
+                  <p className="text-[11px] md:text-[13px] font-semibold text-gray-500">Health<br/>Check ups</p>
+                </div>
+                <div className="text-center">
+                  <i className="fa fa-building text-xl md:text-2xl text-blue-500 mb-1"></i>
+                  <p className="text-[11px] md:text-[13px] font-semibold text-gray-500">Corporate Health<br/>Packages</p>
+                </div>
               </div>
             </div>
           </div>
@@ -48,8 +83,8 @@ function Home() {
       </section>
 
       {/* Services Section */}
-      <div className="container mx-auto mt-12 mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-black mb-6 px-6">
+      <div className="container mt-12 mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-black mb-6 px-6 sm:px-2">
           <i className="fa fa-notes-medical text-[#0F847E] mr-2"></i> Our Home Diagnostic Services
         </h2>
         
@@ -59,7 +94,7 @@ function Home() {
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">Digital Xray At Home</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
               X-rays are quick, painless, and essential for diagnosing various conditions. With XRAi digital, you can get professional-grade digital X-rays done without stepping out of your home.
-              <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
+              <Link to="/services" className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</Link>
             </p>
           </div>
 
@@ -68,7 +103,7 @@ function Home() {
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">ECG</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
               Monitor your heart’s electrical activity, rate, and rhythm with hospital-grade ECG services, conveniently performed at home by qualified experts.
-              <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
+              <Link to="/services" className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</Link>
             </p>
           </div>
 
@@ -77,7 +112,7 @@ function Home() {
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">Holter</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
               Need continuous heart monitoring? Our portable Holter devices allow you to undergo cardiac monitoring effortlessly from home.
-              <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
+              <Link to="/services" className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</Link>
             </p>
           </div>
           
@@ -86,7 +121,7 @@ function Home() {
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">PFT</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
               Assess your lung health with ease. XRAi digital ensures accurate and efficient PFTs in the comfort of your home, with no disruption to your routine.
-              <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
+              <Link to="/services" className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</Link>
             </p>
           </div>
 
@@ -95,7 +130,7 @@ function Home() {
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">Sample Collection</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
               A home sample collection is done to make it easier if you do not wish to go to hospital or local lab to provide your blood or body fluid samples for testing time.
-              <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
+              <Link to="/services" className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</Link>
             </p>
           </div>
 
@@ -104,7 +139,7 @@ function Home() {
             <h3 className="text-lg font-bold text-gray-800 mt-4 mx-2">Health Screening</h3>
             <p className="text-xs font-bold text-gray-600 m-4 mb-5">
               Comprehensive health screening packages for all needs in the comfort of your home, with doctor consult, medical scan and physical examination.
-              <span className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</span>
+              <Link to="/services" className="block mt-1 text-[#11A8A4] hover:underline cursor-pointer">Read More</Link>
             </p>
           </div>
         </div>

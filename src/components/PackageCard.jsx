@@ -10,7 +10,7 @@ const PackageCard = ({
   includes = [],
 }) => {
   return (
-    <div className="relative bg-white rounded-3xl py-2 md:py-2 px-4 md:px-4 shadow-[0_4px_20px_rgb(0,0,0,0.08)] w-[450px] h-[520px] border border-gray-100 overflow-hidden flex flex-col text-left">
+    <div className="relative bg-white rounded-3xl py-4 md:py-2 px-4 md:px-4 shadow-[0_4px_20px_rgb(0,0,0,0.08)] w-full max-w-[450px] h-auto min-h-[520px] border border-gray-100 overflow-hidden flex flex-col text-left">
       {/* Top Border Curve (simplified with top border) */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#0db9b6] to-[#049391]"></div>
 
@@ -77,7 +77,7 @@ const PackageCard = ({
           <FileText size={18} />
         </div>
         <p className="text-[10px] font-semibold text-[#112a46] leading-snug">
-          To access the full details of the health test package, download the <a href="#" className="text-[#0db9b6] underline underline-offset-2 hover:text-[#049391]">PDF here</a>.
+          To access the full details of the health test package, download the <a href="/Content/Health_Check_Package.pdf" target="_blank" rel="noopener noreferrer" className="text-[#0db9b6] underline underline-offset-2 hover:text-[#049391]">PDF here</a>.
         </p>
       </div>
     </div>
