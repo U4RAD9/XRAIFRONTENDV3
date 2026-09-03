@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import { Link } from 'react-router-dom';
 
 function PatientDashboard() {
@@ -9,7 +9,7 @@ function PatientDashboard() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await axios.get('http://127.0.0.1:8000/api/booking/patient_bookings');
+        const res = await axiosInstance.get('/booking/patient_bookings');
         setBookings(res.data);
       } catch (err) {
         console.error('Failed to fetch patient bookings', err);

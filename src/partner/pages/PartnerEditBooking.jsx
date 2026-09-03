@@ -4,6 +4,8 @@ import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
 import Modal from '../../employee/components/Modal';
 
+const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
+
 function PartnerEditBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -337,7 +339,7 @@ function PartnerEditBooking() {
                             {svc.serviceFiles.map((file, idx) => (
                               <button 
                                 key={`btn-svc-${idx}`}
-                                onClick={() => window.open(`http://localhost:8000/media/${file}`, '_blank')}
+                                onClick={() => window.open(`${mediaBaseURL}/${file}`, '_blank')}
                                 className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[12px] font-bold py-2 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
                               >
                                 VIEW SERVICE FILE {svc.serviceFiles.length > 1 ? (idx + 1) : ''}
@@ -358,7 +360,7 @@ function PartnerEditBooking() {
                             {svc.reportFiles.map((file, idx) => (
                               <button 
                                 key={`btn-rep-${idx}`}
-                                onClick={() => window.open(`http://localhost:8000/media/${file}`, '_blank')}
+                                onClick={() => window.open(`${mediaBaseURL}/${file}`, '_blank')}
                                 className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[12px] font-bold py-2 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
                               >
                                 VIEW REPORT FILE {svc.reportFiles.length > 1 ? (idx + 1) : ''}
