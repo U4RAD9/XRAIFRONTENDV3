@@ -14,7 +14,7 @@ export default defineConfig({
     strictPort: true,
 
     allowedHosts: [
-      'test2.xraidigital.com',
+      'test.xraidigital.com',
     ],
   },
 })
