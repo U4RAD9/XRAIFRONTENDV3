@@ -3,44 +3,7 @@ import React, { useState } from 'react';
 function AdminBookingReport() {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [reports] = useState([
-    {
-      id: 1,
-      name: 'Dr. Smith',
-      userType: 'Partner',
-      patientId: 'PT-1001',
-      phoneNo: '9876543210',
-      patientName: 'Srinivasan',
-      refNo: 'REF-8821',
-      bookingDate: '2023-11-01',
-      slot: '10:00 AM',
-      paymentMethod: 'UPI',
-      paymentStatus: 'Paid',
-      status: 'Completed',
-      grossAmount: '₹ 1500',
-      invoiceDiscount: '₹ 100',
-      itemDiscount: '₹ 50',
-      netAmount: '₹ 1350'
-    },
-    {
-      id: 2,
-      name: 'City Hospital',
-      userType: 'Corporate',
-      patientId: 'PT-1002',
-      phoneNo: '9876543211',
-      patientName: 'Jane Doe',
-      refNo: 'REF-8822',
-      bookingDate: '2023-11-02',
-      slot: '02:30 PM',
-      paymentMethod: 'Cash',
-      paymentStatus: 'Pending',
-      status: 'Scheduled',
-      grossAmount: '₹ 2000',
-      invoiceDiscount: '₹ 0',
-      itemDiscount: '₹ 200',
-      netAmount: '₹ 1800'
-    }
-  ]);
+  const [reports] = useState([]);
 
   const columns = [
     { key: 'name', label: 'NAME' },

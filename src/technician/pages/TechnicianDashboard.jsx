@@ -330,13 +330,18 @@ function TechnicianDashboard() {
                        <div className="flex justify-between items-center mb-2">
                          <span className="font-bold text-[#233560]">{svc.service}</span>
                          <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-3 py-1 rounded hover:bg-cyan-50 font-bold text-xs uppercase">
-                           {svc.serviceFile ? 'Update Service File' : 'Upload Service File'}
+                           {svc.serviceFiles && svc.serviceFiles.length > 0 ? 'Update Service File' : 'Upload Service File'}
                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Service', svc.id)} />
                          </label>
                        </div>
-                       {svc.serviceFile ? (
-                         <div className="h-[400px] border rounded overflow-hidden relative">
-                            <iframe src={`${mediaBaseURL}/${encodeURIComponent(svc.serviceFile)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Service File ${svc.service}`} />
+                       {svc.serviceFiles && svc.serviceFiles.length > 0 ? (
+                         <div className="flex flex-col gap-4">
+                           {svc.serviceFiles.map((file, idx) => (
+                             <div key={`svc-${svc.id}-${idx}`} className="h-[400px] border rounded overflow-hidden relative">
+                                <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
+                                <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Service File ${svc.bodyPart || svc.service} ${idx}`} />
+                             </div>
+                           ))}
                          </div>
                        ) : (
                          <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No service file for {svc.service}</div>
@@ -355,13 +360,18 @@ function TechnicianDashboard() {
                        <div className="flex justify-between items-center mb-2">
                          <span className="font-bold text-[#233560]">{svc.service}</span>
                          <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-3 py-1 rounded hover:bg-cyan-50 font-bold text-xs uppercase">
-                           {svc.reportFile ? 'Update Report File' : 'Upload Report File'}
+                           {svc.reportFiles && svc.reportFiles.length > 0 ? 'Update Report File' : 'Upload Report File'}
                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Report', svc.id)} />
                          </label>
                        </div>
-                       {svc.reportFile ? (
-                         <div className="h-[400px] border rounded overflow-hidden relative">
-                            <iframe src={`${mediaBaseURL}/${encodeURIComponent(svc.reportFile)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Report File ${svc.service}`} />
+                       {svc.reportFiles && svc.reportFiles.length > 0 ? (
+                         <div className="flex flex-col gap-4">
+                           {svc.reportFiles.map((file, idx) => (
+                             <div key={`rep-${svc.id}-${idx}`} className="h-[400px] border rounded overflow-hidden relative">
+                                <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
+                                <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Report File ${svc.bodyPart || svc.service} ${idx}`} />
+                             </div>
+                           ))}
                          </div>
                        ) : (
                          <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No report file for {svc.service}</div>

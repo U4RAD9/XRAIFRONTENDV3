@@ -16,8 +16,8 @@ function PartnerSidebar({ isSidebarOpen, setIsSidebarOpen, handleLogout }) {
     <>
       {/* Desktop Sidebar */}
       <div className="w-64 shrink-0 bg-[#233560] text-white hidden md:flex flex-col shadow-xl z-40 sticky top-0 h-screen overflow-y-auto">
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold">Partner Panel</h2>
+        <div className="p-6 border-b border-gray-700 flex justify-center">
+          <img src="/Content/xraiLogo.png" alt="XRAI Logo" className="h-10 object-contain" />
         </div>
         <nav className="flex-1 px-4 py-6 space-y-1">
           {partnerNavLinks.map((link, index) => (
@@ -47,7 +47,7 @@ function PartnerSidebar({ isSidebarOpen, setIsSidebarOpen, handleLogout }) {
           <button onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:text-white focus:outline-none">
             <i className="fas fa-times text-2xl"></i>
           </button>
-          <h2 className="text-xl font-bold">Partner Panel</h2>
+          <img src="/Content/xraiLogo.png" alt="XRAI Logo" className="h-8 object-contain" />
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {partnerNavLinks.map((link, index) => (

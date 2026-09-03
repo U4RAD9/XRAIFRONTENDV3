@@ -44,7 +44,14 @@ function AdminMakeBooking() {
           axiosInstance.get(ENDPOINTS.SERVICES).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.PATIENTS).catch(() => ({ data: [] }))
         ]);
-        const getArrayData = (res) => (res.data?.result || res.data || []);
+        const getArrayData = (res) => {
+          const d = res.data;
+          if (!d) return [];
+          if (Array.isArray(d)) return d;
+          if (Array.isArray(d.results)) return d.results;
+          if (Array.isArray(d.result)) return d.result;
+          return [];
+        };
         
         setApiLocations(getArrayData(locationsRes).filter(x => x.is_active !== false));
         setApiSlots(getArrayData(slotsRes).filter(x => x.is_active !== false));
@@ -58,24 +65,26 @@ function AdminMakeBooking() {
     fetchMasterData();
   }, []);
 
-  const [showCameraModal, setShowCameraModal] = useState(false);
-  const [capturedPhoto, setCapturedPhoto] = useState(null);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const [stream, setStream] = useState(null);
+  const [prescriptionFiles, setPrescriptionFiles] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const [currentBookingId, setCurrentBookingId] = useState(null);
 
   const [patients, setPatients] = useState([]);
 
   const handleBookSlot = async (patient) => {
     setSelectedPatientForBooking(patient);
+    setCurrentBookingId(null);
     setSelectedLocation(''); 
     setServiceItems([]);
     setBookingAddress(patient.address || '');
+    setPrescriptionFiles([]);
+    setImageFile(null);
     
     try {
       const resp = await axiosInstance.get(ENDPOINTS.LAST_BOOKING, { params: { patient_id: patient.patient_id } });
       if (resp.data.Success) {
         const lastBooking = resp.data.Booking;
+        if (lastBooking.slot_booking_id) setCurrentBookingId(lastBooking.slot_booking_id);
         
         let locId = lastBooking.location_id;
         if (!locId && lastBooking.location_name) {
@@ -94,12 +103,32 @@ function AdminMakeBooking() {
         if (lastBooking.date) setVisitDate(lastBooking.date);
         if (lastBooking.payment_method) setPaymentMode(lastBooking.payment_method);
         if (lastBooking.address) setBookingAddress(lastBooking.address);
+
+        if (lastBooking.prescription_file) {
+          const files = lastBooking.prescription_file.split(',').filter(Boolean).map(url => ({
+            name: url.split('/').pop(),
+            url: url,
+            isExisting: true
+          }));
+          setPrescriptionFiles(files);
+        } else {
+          setPrescriptionFiles([]);
+        }
+
+        if (lastBooking.image_file) {
+          setImageFile({
+            name: lastBooking.image_file.split('/').pop(),
+            url: lastBooking.image_file,
+            isExisting: true
+          });
+        }
         
         if (lastBooking.services && lastBooking.services.length > 0) {
           const formattedServices = lastBooking.services.map(s => ({
             service: s.service_group_id,
             bodyPart: s.service_id,
             price: s.price,
+            netPayable: s.price,
             serviceName: s.service_group_name,
             bodyPartName: s.service_name
           }));
@@ -108,6 +137,7 @@ function AdminMakeBooking() {
       }
     } catch (err) {
       console.log("No previous booking found or error fetching it.");
+      setCurrentBookingId(null);
     }
   };
 
@@ -154,40 +184,37 @@ function AdminMakeBooking() {
     }
   };
 
-  const startCamera = async () => {
-    setShowCameraModal(true);
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+  const fetchPriceForService = async (locationId, serviceId, groupId) => {
+    if (locationId && serviceId && groupId) {
+      try {
+        const response = await axiosInstance.get(ENDPOINTS.GET_PRICE, {
+          params: { location_id: locationId, service_id: serviceId, group_id: groupId }
+        });
+        if (response.data && response.data.Price !== undefined) {
+          setCurrentService(prev => ({
+            ...prev,
+            price: response.data.Price,
+            netPayable: response.data.Price
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching price:", err);
       }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("Unable to access camera.");
-      setShowCameraModal(false);
     }
   };
 
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-      const photoDataUrl = canvas.toDataURL('image/jpeg');
-      setCapturedPhoto(photoDataUrl);
-      closeCamera();
-    }
+  const handleBodyPartChange = (e) => {
+    const serviceId = e.target.value;
+    setCurrentService(prev => ({...prev, bodyPart: serviceId}));
+    fetchPriceForService(selectedLocation, serviceId, currentService.service);
   };
 
-  const closeCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+  const handleLocationChange = (e) => {
+    const locId = e.target.value;
+    setSelectedLocation(locId);
+    if (currentService.bodyPart && currentService.service) {
+      fetchPriceForService(locId, currentService.bodyPart, currentService.service);
     }
-    setShowCameraModal(false);
   };
 
   const handleCheckoutSubmit = async () => {
@@ -212,11 +239,43 @@ function AdminMakeBooking() {
         services: serviceItems.map(item => ({
           service_id: item.bodyPart,
           price: item.price
-        }))
+        })),
+        prescription_file: prescriptionFiles.filter(f => f.isExisting).map(f => f.url).join(','),
+        image_file: imageFile && imageFile.isExisting ? imageFile.url : ""
       };
 
-      const response = await axiosInstance.post(ENDPOINTS.SAVE_BOOKING, payload);
+      if (currentBookingId) {
+        payload.booking_id = currentBookingId;
+      }
+
+      const response = currentBookingId 
+        ? await axiosInstance.post(ENDPOINTS.UPDATE_BOOKING, payload)
+        : await axiosInstance.post(ENDPOINTS.SAVE_BOOKING, payload);
       if (response.data.Success === true) {
+        const bookingId = response.data.BookingID;
+        
+        // Upload Prescription if selected
+        if (bookingId) {
+          for (let f of prescriptionFiles) {
+            if (!f.isExisting) {
+              const presFormData = new FormData();
+              presFormData.append('file', f.file);
+              await axiosInstance.post(`${ENDPOINTS.UPLOAD_PRESCRIPTION}/${bookingId}`, presFormData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              }).catch(err => console.error("Error uploading prescription:", err));
+            }
+          }
+        }
+
+        // Upload Image if selected
+        if (imageFile && !imageFile.isExisting && bookingId) {
+          const imgFormData = new FormData();
+          imgFormData.append('file', imageFile.file);
+          await axiosInstance.post(`${ENDPOINTS.UPLOAD_IMAGE}/${bookingId}`, imgFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }).catch(err => console.error("Error uploading image:", err));
+        }
+
         alert("Booking successful!");
         setShowConsentModal(false);
         setConsentChecked(false);
@@ -231,10 +290,10 @@ function AdminMakeBooking() {
     }
   };
 
-  const filteredPatients = patients.filter(p => 
+  const filteredPatients = Array.isArray(patients) ? patients.filter(p => 
     (p.patient_name && p.patient_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (p.email && p.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ) : [];
 
   if (selectedPatientForBooking) {
     return (
@@ -285,7 +344,7 @@ function AdminMakeBooking() {
               <label className="block text-xs font-semibold text-gray-600 mb-1">Location</label>
               <select 
                 value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
+                onChange={handleLocationChange}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#00acc1] bg-white"
               >
                 <option value="">-- Please Select Location --</option>
@@ -339,33 +398,102 @@ function AdminMakeBooking() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="md:col-span-1">
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Upload Prescription</label>
-              <div className="flex">
-                <label className="bg-gray-100 border border-gray-300 text-gray-600 px-3 py-2 text-sm rounded-l cursor-pointer hover:bg-gray-200 whitespace-nowrap">
-                  Choose File
-                  <input type="file" className="hidden" />
-                </label>
-                <span className="border border-l-0 border-gray-300 px-3 py-2 text-sm text-gray-400 bg-white rounded-r flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                  No file chosen
-                </span>
-              </div>
-              
-              {capturedPhoto && (
-                <div className="mt-3 flex items-center justify-between bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <img src={capturedPhoto} alt="Captured" className="w-[60px] h-[60px] object-cover rounded shadow-sm border border-gray-200" />
-                    <span className="text-gray-700 text-sm font-semibold">Captured Photo</span>
-                  </div>
-                  <button onClick={() => setCapturedPhoto(null)} className="text-red-500 hover:text-red-700 mr-2 cursor-pointer" title="Remove">
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
+            <div className="md:col-span-1 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Upload Prescription</label>
+                <div className="flex">
+                  <label htmlFor="admin-prescription-upload" className="bg-gray-100 border border-gray-300 text-gray-600 px-3 py-2 text-sm rounded-l cursor-pointer hover:bg-gray-200 whitespace-nowrap">
+                    Choose File
+                  </label>
+                  <input id="admin-prescription-upload" type="file" multiple className="hidden" onChange={(e) => {
+                    const files = Array.from(e.target.files || []).map(f => ({
+                      file: f,
+                      name: f.name,
+                      isExisting: false
+                    }));
+                    if (files.length > 0) {
+                      setPrescriptionFiles(prev => [...prev, ...files]);
+                    }
+                    e.target.value = '';
+                  }} />
+                  <span className="border border-l-0 border-gray-300 px-3 py-2 text-sm text-gray-400 bg-white rounded-r flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {prescriptionFiles.length > 0 ? `${prescriptionFiles.length} file(s) chosen` : 'No file chosen'}
+                  </span>
                 </div>
-              )}
+                {prescriptionFiles.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {prescriptionFiles.map((f, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                        <span className="text-xs text-blue-600 hover:underline cursor-pointer truncate mr-2" onClick={() => {
+                          if (f.isExisting) {
+                            const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
+                            window.open(`${mediaBaseURL}/${f.url}`, '_blank');
+                          } else {
+                            window.open(URL.createObjectURL(f.file), '_blank');
+                          }
+                        }} title={f.name}>
+                          {f.name}
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={() => setPrescriptionFiles(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-red-500 hover:text-red-700 cursor-pointer flex-shrink-0"
+                          title="Remove file"
+                        >
+                          <i className="fas fa-trash-alt text-xs"></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-              <button onClick={startCamera} className="mt-3 bg-[#00acc1] hover:bg-[#008ba3] text-white w-full py-2 rounded text-sm font-semibold flex items-center justify-center transition-colors shadow-sm cursor-pointer">
-                <i className="fas fa-camera mr-2"></i> CLICK A PHOTO
-              </button>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Upload Image</label>
+                <div className="flex">
+                  <label htmlFor="admin-image-upload" className="bg-gray-100 border border-gray-300 text-gray-600 px-3 py-2 text-sm rounded-l cursor-pointer hover:bg-gray-200 whitespace-nowrap">
+                    Choose File
+                  </label>
+                  <input id="admin-image-upload" type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      const f = e.target.files[0];
+                      setImageFile({
+                        file: f,
+                        name: f.name,
+                        isExisting: false
+                      });
+                    }
+                    e.target.value = '';
+                  }} />
+                  <span className="border border-l-0 border-gray-300 px-3 py-2 text-sm text-gray-400 bg-white rounded-r flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {imageFile ? '1 file(s) chosen' : 'No image chosen'}
+                  </span>
+                </div>
+                {imageFile && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                      <span className="text-xs text-blue-600 hover:underline cursor-pointer truncate mr-2" onClick={() => {
+                        if (imageFile.isExisting) {
+                          const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
+                          window.open(`${mediaBaseURL}/${imageFile.url}`, '_blank');
+                        } else {
+                          window.open(URL.createObjectURL(imageFile.file), '_blank');
+                        }
+                      }} title={imageFile.name}>
+                        {imageFile.name}
+                      </span>
+                      <button 
+                        type="button"
+                        onClick={() => setImageFile(null)}
+                        className="text-red-500 hover:text-red-700 cursor-pointer flex-shrink-0"
+                        title="Remove file"
+                      >
+                        <i className="fas fa-trash-alt text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 mb-1">Address</label>
@@ -412,7 +540,7 @@ function AdminMakeBooking() {
                 <label className="block text-xs font-semibold text-gray-600 mb-1 text-center uppercase">Body Part</label>
                 <select 
                   value={currentService.bodyPart}
-                  onChange={(e) => setCurrentService({...currentService, bodyPart: e.target.value})}
+                  onChange={handleBodyPartChange}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#00acc1] bg-white"
                   disabled={!currentService.service}
                 >
@@ -488,26 +616,7 @@ function AdminMakeBooking() {
           </div>
         )}
 
-        {/* Camera Modal */}
-        {showCameraModal && (
-          <div className="fixed inset-0 bg-black/80 flex flex-col justify-center items-center z-[60]">
-            <div className="bg-white p-4 rounded-lg shadow-xl w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-lg font-bold mb-4 text-center text-gray-800">Capture Photo</h3>
-              <div className="relative bg-black rounded-lg overflow-hidden w-full aspect-video flex justify-center items-center">
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
-              </div>
-              <div className="flex justify-center gap-4 mt-6">
-                <button onClick={closeCamera} className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-full font-semibold transition-colors cursor-pointer">
-                  Cancel
-                </button>
-                <button onClick={capturePhoto} className="px-6 py-2 bg-[#00acc1] hover:bg-[#008ba3] text-white rounded-full font-semibold flex items-center transition-colors shadow-sm cursor-pointer">
-                  <i className="fas fa-camera mr-2"></i> Capture
-                </button>
-              </div>
-              <canvas ref={canvasRef} className="hidden"></canvas>
-            </div>
-          </div>
-        )}
+
 
         {/* Consent Modal */}
         {showConsentModal && (
@@ -586,14 +695,14 @@ function AdminMakeBooking() {
           <div className="flex bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
             <button 
               onClick={() => setViewMode('table')}
-              className={`cursor-pointer px-3 py-2 ${viewMode === 'table' ? 'bg-gray-100 text-[#00acc1]' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`cursor-pointer px-3 py-1.75 ${viewMode === 'table' ? 'bg-gray-100 text-[#00acc1]' : 'text-gray-500 hover:bg-gray-50'}`}
               title="Table View"
             >
               <i className="fas fa-list"></i>
             </button>
             <button 
               onClick={() => setViewMode('grid')}
-              className={`cursor-pointer px-3 py-2 border-l border-gray-300 ${viewMode === 'grid' ? 'bg-gray-100 text-[#00acc1]' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`cursor-pointer px-3 py-1.75 border-l border-gray-300 ${viewMode === 'grid' ? 'bg-gray-100 text-[#00acc1]' : 'text-gray-500 hover:bg-gray-50'}`}
               title="Grid View"
             >
               <i className="fas fa-th-large"></i>

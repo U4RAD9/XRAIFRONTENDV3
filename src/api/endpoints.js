@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   DASHBOARD_STATS: '/booking/dashboard_stats',
   ALL_BOOKINGS: '/booking/all_bookings',
   TECHNICIAN_BOOKINGS: '/booking/technician_bookings',
+  PATIENT_BOOKINGS: '/booking/patient_bookings',
   GET_SLOTS: '/booking/get_slots',
   GET_SERVICES: '/booking/get_services',
   GET_PRICE: '/booking/get_price',
@@ -18,6 +19,7 @@ export const ENDPOINTS = {
   BOOKING_DETAILS: '/booking/details',
   UPLOAD_FILE: '/booking/upload_file',
   UPLOAD_PRESCRIPTION: '/booking/upload_prescription',
+  UPLOAD_IMAGE: '/booking/upload_image',
   UPDATE_BOOKING_STATUS: '/booking/update_booking_status',
   UPDATE_PAYMENT_STATUS: '/booking/update_payment_status',
   

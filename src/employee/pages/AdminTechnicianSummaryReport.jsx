@@ -2,32 +2,7 @@ import React, { useState } from 'react';
 import Modal from '../components/Modal';
 
 function AdminTechnicianSummaryReport() {
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      date: '2023-10-25',
-      name: 'John Doe',
-      tripAssigned: 5,
-      tripPerformed: 4,
-      unperformedTrips: 1,
-      startedAt: '09:00 AM',
-      endedAt: '05:00 PM',
-      workTime: '8h 0m',
-      distanceCovered: '45 km'
-    },
-    {
-      id: 2,
-      date: '2023-10-26',
-      name: 'Jane Smith',
-      tripAssigned: 6,
-      tripPerformed: 6,
-      unperformedTrips: 0,
-      startedAt: '08:30 AM',
-      endedAt: '04:30 PM',
-      workTime: '8h 0m',
-      distanceCovered: '62 km'
-    }
-  ]);
+  const [reports, setReports] = useState([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
   

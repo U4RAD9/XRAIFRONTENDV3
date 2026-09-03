@@ -26,12 +26,12 @@ function AdminPatients() {
         gender: p.gender || 'N/A',
         address: p.address || 'N/A',
         contactNo: p.alternate_mobile_number || 'N/A',
-        email: p.email_id || 'N/A',
-        pin: p.pin_code || 'N/A',
+        email: p.email || 'N/A',
+        pin: p.pin || 'N/A',
         refNo: `REF-${p.patient_id}`,
-        height: 'N/A',
-        bmi: 'N/A',
-        bp: 'N/A'
+        height: p.height || 'N/A',
+        bmi: p.bmi || 'N/A',
+        bp: p.bp || 'N/A'
       }));
       setPatients(mapped);
     } catch (error) {

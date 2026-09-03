@@ -14,7 +14,8 @@ import SlotBooking from './patients/pages/SlotBooking';
 import PartnerLayout from './partner/components/PartnerLayout';
 import PartnerDashboard from './partner/pages/PartnerDashboard';
 import PartnerBooking from './partner/pages/PartnerBooking';
-import PartnerDummyPage from './partner/pages/PartnerDummyPage';
+import PartnerMakeBooking from './partner/pages/PartnerMakeBooking';
+import PartnerEditBooking from './partner/pages/PartnerEditBooking';
 import TechnicianLayout from './technician/components/TechnicianLayout';
 import TechnicianDashboard from './technician/pages/TechnicianDashboard';
 import TechnicianEditBooking from './technician/pages/TechnicianEditBooking';
@@ -75,7 +76,8 @@ function App() {
         <Route path="/partner" element={<PartnerLayout />}>
           <Route path="dashboard" element={<PartnerDashboard />} />
           <Route path="booking" element={<PartnerBooking />} />
-          <Route path="dummy-page" element={<PartnerDummyPage />} />
+          <Route path="make-booking" element={<PartnerMakeBooking />} />
+          <Route path="bookings/edit/:id" element={<PartnerEditBooking />} />
         </Route>
 
         <Route path="/technician" element={<TechnicianLayout />}>

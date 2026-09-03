@@ -12,9 +12,6 @@ function Registration() {
     Age: ''
   });
   const [loading, setLoading] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpLoading, setOtpLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,7 +19,7 @@ function Registration() {
     setFormData({...formData, [e.target.name]: e.target.value});
   };
 
-  const handleSendOtp = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!formData.MobileNumber || !formData.MPIN) {
       alert("Please enter mobile number and password.");
@@ -31,54 +28,18 @@ function Registration() {
 
     setLoading(true);
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/auth/send_otp', { mobile: formData.MobileNumber });
-      if (res.data.StatusCode === true) {
-        alert("OTP is: " + res.data.OTP);
-        alert(res.data.Message);
-        setShowOtpModal(true);
+      const signupRes = await axios.post('http://127.0.0.1:8000/api/auth/signup', formData);
+      
+      if (signupRes.data.Success === true) {
+        alert("Registration successful! Please login.");
+        navigate('/login');
       } else {
-        alert(res.data.Message || "Failed to send OTP.");
+        alert(signupRes.data.Message);
       }
     } catch (err) {
-      alert("Error sending OTP");
+      alert("Error during registration.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp) {
-      alert("Please enter OTP.");
-      return;
-    }
-
-    setOtpLoading(true);
-    try {
-      // 1. Verify OTP
-      const verifyRes = await axios.post('http://127.0.0.1:8000/api/auth/verify_otp', { 
-        mobile: formData.MobileNumber, 
-        otp: otp 
-      });
-
-      if (verifyRes.data === true) {
-        alert("OTP has been verified successfully.");
-        
-        // 2. Signup
-        const signupRes = await axios.post('http://127.0.0.1:8000/api/auth/signup', formData);
-        
-        if (signupRes.data.Success === true) {
-          alert("Registration successful! Please login.");
-          navigate('/login');
-        } else {
-          alert(signupRes.data.Message);
-        }
-      } else {
-        alert("Invalid OTP. Please retry with valid OTP.");
-      }
-    } catch (err) {
-      alert("Error during verification.");
-    } finally {
-      setOtpLoading(false);
     }
   };
 
@@ -132,8 +93,8 @@ function Registration() {
               </div>
             </div>
 
-            <button type="button" onClick={handleSendOtp} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
-              {loading ? 'Sending...' : 'Sign up'}
+            <button type="button" onClick={handleSignup} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
+              {loading ? 'Registering...' : 'Sign up'}
             </button>
             
             <p className="text-center text-sm text-gray-600 mt-4">
@@ -146,24 +107,6 @@ function Registration() {
         <div className="hidden md:block w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('https://xraidigital.com/Admin_Content/Images/CompanyLogo/Logo.jpg')" }}>
         </div>
       </div>
-
-      {/* OTP Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-[90%] max-w-md">
-            <h4 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Verify OTP</h4>
-            <div className="flex gap-4 items-center">
-              <input type="number" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} className="flex-1 border border-[#b2ebf2] rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" />
-              <button type="button" onClick={handleVerifyOtp} disabled={otpLoading} className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold px-6 py-2 rounded-lg hover:shadow-lg transition-all">
-                {otpLoading ? 'Verifying...' : 'Verify'}
-              </button>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button type="button" onClick={() => setShowOtpModal(false)} className="text-gray-500 hover:text-gray-800 font-semibold px-4 py-2 border rounded-lg">Close</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -47,7 +47,7 @@ function AdminPriceRateMaster() {
           axiosInstance.get(ENDPOINTS.LOCATIONS).catch(() => ({ data: [] }))
         ]);
         setApiServices(servicesRes.data.filter(x => x.is_active !== false));
-        setApiServiceGroups(groupsRes.data.filter(x => x.is_active !== false));
+        setApiServiceGroups(groupsRes.data);
         setApiVisitTypes(visitTypesRes.data.filter(x => x.is_active !== false));
         setApiLocations(locationsRes.data.filter(x => x.is_active !== false));
       } catch (err) {
@@ -135,9 +135,13 @@ function AdminPriceRateMaster() {
   const handleServiceChange = (e) => {
     const serviceName = e.target.value;
     const svc = apiServices.find(s => s.service_name === serviceName);
-    let groupName = formData.serviceGroup;
+    let groupName = '';
     if (svc) {
-      const group = apiServiceGroups.find(g => g.service_group_id === svc.service_group);
+      const group = apiServiceGroups.find(g => 
+        String(g.service_group_id) === String(svc.service_group) || 
+        String(g.id) === String(svc.service_group) ||
+        String(g.service_group_id) === String(svc.service_group_id)
+      );
       if (group) groupName = group.service_group_name;
     }
     setFormData({ ...formData, service: serviceName, serviceGroup: groupName });

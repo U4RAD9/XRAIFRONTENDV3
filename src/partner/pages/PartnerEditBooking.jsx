@@ -2,20 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
-import Modal from '../components/Modal';
+import Modal from '../../employee/components/Modal';
 
-const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
-
-function AdminEditBooking() {
+function PartnerEditBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Dummy State for Service Booking
   const [location, setLocation] = useState('');
+  const [locationId, setLocationId] = useState('');
   const [slot, setSlot] = useState('');
-  const [technician, setTechnician] = useState('');
-  const [assignedTechnician, setAssignedTechnician] = useState('');
-  const [apiTechnicians, setApiTechnicians] = useState([]);
   const [visitType, setVisitType] = useState('Home');
   const [visitDate, setVisitDate] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
@@ -26,7 +21,16 @@ function AdminEditBooking() {
   });
   const [createdOn, setCreatedOn] = useState('N/A');
   const [services, setServices] = useState([]);
-  const [prescriptionFile, setPrescriptionFile] = useState(null);
+
+  // Masters for Add New Service
+  const [serviceGroups, setServiceGroups] = useState([]);
+  const [allServices, setAllServices] = useState([]);
+  
+  // Selection state for Add New Service
+  const [selectedServiceGroup, setSelectedServiceGroup] = useState('');
+  const [selectedService, setSelectedService] = useState('');
+  const [newPrice, setNewPrice] = useState('');
+  const [newNetPayable, setNewNetPayable] = useState('');
 
   // File Upload Modal State
   const [showFileModal, setShowFileModal] = useState(false);
@@ -87,14 +91,16 @@ function AdminEditBooking() {
   const [fetchBookingDetailsRef, setFetchBookingDetailsRef] = useState(() => () => {});
 
   useEffect(() => {
-    const fetchTechnicians = async () => {
+    const fetchMasters = async () => {
       try {
-        const response = await axiosInstance.get(ENDPOINTS.USERS);
-        const allUsers = response.data.result || response.data || [];
-        const techs = allUsers.filter(user => user.user_type_name === 'Technician');
-        setApiTechnicians(techs);
+        const [sgRes, svcRes] = await Promise.all([
+          axiosInstance.get(ENDPOINTS.SERVICE_GROUPS),
+          axiosInstance.get(ENDPOINTS.SERVICES)
+        ]);
+        setServiceGroups(sgRes.data.result || sgRes.data || []);
+        setAllServices(svcRes.data.result || svcRes.data || []);
       } catch (err) {
-        console.error("Error fetching technicians:", err);
+        console.error("Error fetching masters:", err);
       }
     };
     
@@ -104,16 +110,14 @@ function AdminEditBooking() {
         if (response.data.Success) {
           const b = response.data.Booking;
           setLocation(b.location_name);
+          setLocationId(b.location_id || '');
           setSlot(b.slot_name);
           setVisitType(b.visit_type);
           setVisitDate(b.visit_date);
           setPaymentMode(b.payment_mode);
           setCreatedOn(b.created_on);
-          setTechnician(b.technician_id || '');
-          setAssignedTechnician(b.technician_id || '');
-          setPatientData(b.patient || { phoneNo: 'N/A', patientName: 'N/A', weight: 'N/A', address: 'N/A', email: 'N/A', age: 'N/A', gender: 'N/A', pin: 'N/A', alternateNo: 'N/A' });
-          setServices(b.services || []);
-          setPrescriptionFile(b.prescriptionFile);
+          setPatientData(b.patient);
+          setServices(b.services);
         }
       } catch (err) {
         console.error("Error fetching booking details:", err);
@@ -122,36 +126,105 @@ function AdminEditBooking() {
     
     setFetchBookingDetailsRef(() => fetchBookingDetails);
     
-    fetchTechnicians();
+    fetchMasters();
     fetchBookingDetails();
   }, [id]);
 
-  const handleUpdateTechnician = async () => {
-    if (!technician) {
-      alert("Please select a technician");
+
+
+
+
+  const handleServiceChange = async (e) => {
+    const serviceId = e.target.value;
+    setSelectedService(serviceId);
+    
+    if (!serviceId) {
+      setNewPrice('');
+      setNewNetPayable('');
       return;
     }
+    
     try {
-      // using slot-booking-master endpoint
-      await axiosInstance.patch(`/slot-booking-master/${id}/`, {
-        service_provider: technician
+      const res = await axiosInstance.get(ENDPOINTS.GET_PRICE, {
+        params: {
+          location_id: locationId,
+          service_id: serviceId,
+          group_id: selectedServiceGroup,
+          visit_type_id: 1 // default to 1 for Home visit
+        }
       });
-      setAssignedTechnician(technician);
-      alert("Technician updated successfully!");
+      const price = res.data?.Price || (serviceId === '1' ? 500 : (serviceId === '2' ? 800 : 1200));
+      setNewPrice(price);
+      setNewNetPayable(price);
     } catch (err) {
-      console.error("Error updating technician:", err);
-      alert("Failed to update technician.");
+      console.error("Error fetching price:", err);
+      setNewPrice('');
+      setNewNetPayable('');
     }
   };
 
+  const handleAddService = () => {
+    if (selectedServiceGroup && selectedService) {
+      const groupObj = serviceGroups.find(g => g.service_group_id?.toString() === selectedServiceGroup.toString());
+      const svcObj = allServices.find(s => s.service_id?.toString() === selectedService.toString());
+      
+      const newSvc = {
+        id: null,
+        service_id: svcObj ? svcObj.service_id : selectedService,
+        service: groupObj ? groupObj.service_group_name : selectedServiceGroup,
+        bodyPart: svcObj ? svcObj.service_name : selectedService,
+        price: newPrice,
+        netPayable: newNetPayable || newPrice
+      };
+      
+      setServices([...services, newSvc]);
+      setSelectedServiceGroup('');
+      setSelectedService('');
+      setNewPrice('');
+      setNewNetPayable('');
+    } else {
+      alert("Please select both a service group and a body part.");
+    }
+  };
 
+  const handleRemoveService = (index) => {
+    const newItems = [...services];
+    newItems.splice(index, 1);
+    setServices(newItems);
+  };
+
+  const handleCheckoutSubmit = async () => {
+    try {
+      const payload = {
+        booking_id: id,
+        payment_method: paymentMode,
+        services: services.map(item => ({
+          service_id: item.service_id || item.bodyPart, // fallback if service_id missing
+          price: item.price
+        }))
+      };
+
+      const response = await axiosInstance.post(ENDPOINTS.UPDATE_BOOKING, payload);
+      
+      if (response.data.Success) {
+        alert("Booking successfully updated!");
+        navigate('/partner/booking');
+      } else {
+        alert("Failed to update booking: " + response.data.Message);
+      }
+    } catch (err) {
+      console.error("Booking error:", err);
+      alert("An error occurred while updating booking.");
+    }
+  };
 
   return (
-    <div className=" max-w-7xl mx-auto min-h-screen bg-gray-50/30">
+    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50/30">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center text-sm font-medium text-gray-500">
-        <i className="fas fa-arrow-left mr-2"></i>
-        <Link to="/admin/bookings" className="hover:text-[#00acc1] transition-colors px-1">Bookings</Link>
+        <Link to="/partner/dashboard" className="hover:text-[#00acc1] transition-colors">Home</Link>
+        <span className="mx-2">/</span>
+        <Link to="/partner/booking" className="hover:text-[#00acc1] transition-colors">Bookings</Link>
         <span className="mx-2">/</span>
         <span className="text-gray-900">Edit Booking</span>
       </div>
@@ -202,23 +275,6 @@ function AdminEditBooking() {
                 <input type="text" value={slot} onChange={(e) => setSlot(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-600 focus:outline-none focus:border-[#00acc1] bg-white" />
               </div>
 
-              <div>
-                <label className="block text-[12px] font-bold text-[#233560] mb-1">Technician:</label>
-                <select value={technician} onChange={(e) => setTechnician(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-500 focus:outline-none focus:border-[#00acc1] bg-white">
-                  <option value="">-- Please Select Technician --</option>
-                  {apiTechnicians.map(tech => (
-                    <option key={tech.id} value={tech.id}>{tech.full_name || tech.user_name}</option>
-                  ))}
-                </select>
-                <div className="mt-4">
-                  <button 
-                    onClick={handleUpdateTechnician}
-                    className="w-full bg-[#233560] text-white text-[13px] font-bold py-2.5 rounded hover:bg-[#1a2849] transition-colors flex justify-center items-center gap-2 cursor-pointer shadow-sm"
-                  >
-                    <i className="fas fa-user-cog"></i> {assignedTechnician ? 'UPDATE TECHNICIAN' : 'ADD TECHNICIAN'}
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Right Column */}
@@ -241,16 +297,7 @@ function AdminEditBooking() {
                 <label className="block text-[12px] font-bold text-[#233560] mb-1">Payment Mode:</label>
                 <input type="text" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-600 focus:outline-none focus:border-[#00acc1] bg-white" />
                 <div className="mt-4 px-2">
-                  <button 
-                    onClick={() => {
-                      if (prescriptionFile) {
-                        window.open(`${mediaBaseURL}/${prescriptionFile}`, '_blank');
-                      } else {
-                        alert("No prescription file uploaded.");
-                      }
-                    }}
-                    className="w-[180px] bg-[#233560] text-white text-[11px] font-bold px-2 py-2.5 rounded hover:bg-[#1a2849] transition-colors flex justify-center items-center gap-2 cursor-pointer shadow-sm"
-                  >
+                  <button className="w-[180px] bg-[#233560] text-white text-[11px] font-bold px-2 py-2.5 rounded hover:bg-[#1a2849] transition-colors flex justify-center items-center gap-2 cursor-pointer shadow-sm">
                     <i className="fas fa-eye"></i> VIEW PRESCRIPTION
                   </button>
                 </div>
@@ -284,58 +331,115 @@ function AdminEditBooking() {
                     <td className="py-5 text-center font-semibold text-gray-700">{svc.price}</td>
                     <td className="py-5 text-center font-semibold text-gray-700">{svc.netPayable}</td>
                     <td className="py-5 text-center whitespace-nowrap">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="flex justify-center gap-2">
+                      <div className="flex justify-center gap-2">
+                        {svc.serviceFiles && svc.serviceFiles.length > 0 ? (
+                          <div className="flex flex-col gap-2">
+                            {svc.serviceFiles.map((file, idx) => (
+                              <button 
+                                key={`btn-svc-${idx}`}
+                                onClick={() => window.open(`http://localhost:8000/media/${file}`, '_blank')}
+                                className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[12px] font-bold py-2 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
+                              >
+                                VIEW SERVICE FILE {svc.serviceFiles.length > 1 ? (idx + 1) : ''}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
                           <button 
                             onClick={() => openFileModal('Service', svc.id)}
                             className="bg-gray-400 hover:bg-gray-500 text-white text-[12px] font-bold py-2 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
                           >
-                            UPLOAD SERVICE FILE
+                            SERVICE FILES
                           </button>
-                          
+                        )}
+                        
+                        {svc.reportFiles && svc.reportFiles.length > 0 ? (
+                          <div className="flex flex-col gap-2">
+                            {svc.reportFiles.map((file, idx) => (
+                              <button 
+                                key={`btn-rep-${idx}`}
+                                onClick={() => window.open(`http://localhost:8000/media/${file}`, '_blank')}
+                                className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[12px] font-bold py-2 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
+                              >
+                                VIEW REPORT FILE {svc.reportFiles.length > 1 ? (idx + 1) : ''}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
                           <button 
                             onClick={() => openFileModal('Report', svc.id)}
                             className="bg-gray-400 hover:bg-gray-500 text-white text-[12px] font-bold py-2 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
                           >
-                            UPLOAD REPORT FILE
+                            REPORT FILE
                           </button>
-                        </div>
-                        
-                        {/* Display uploaded Service Files */}
-                        {svc.serviceFiles && svc.serviceFiles.length > 0 && (
-                          <div className="flex flex-wrap justify-center gap-1 mt-1">
-                            {svc.serviceFiles.map((file, idx) => (
-                              <button 
-                                key={`svc-${idx}`}
-                                onClick={() => window.open(`${mediaBaseURL}/${file}`, '_blank')}
-                                className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[10px] font-bold py-1 px-2 rounded-md transition-colors shadow-sm cursor-pointer"
-                              >
-                                VIEW SERVICE {idx + 1}
-                              </button>
-                            ))}
-                          </div>
                         )}
-
-                        {/* Display uploaded Report Files */}
-                        {svc.reportFiles && svc.reportFiles.length > 0 && (
-                          <div className="flex flex-wrap justify-center gap-1 mt-1">
-                            {svc.reportFiles.map((file, idx) => (
-                              <button 
-                                key={`rep-${idx}`}
-                                onClick={() => window.open(`${mediaBaseURL}/${file}`, '_blank')}
-                                className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[10px] font-bold py-1 px-2 rounded-md transition-colors shadow-sm cursor-pointer"
-                              >
-                                VIEW REPORT {idx + 1}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        <button 
+                          onClick={() => handleRemoveService(services.indexOf(svc))}
+                          className="bg-red-600 hover:bg-red-700 text-white text-[12px] font-bold py-2 px-6 rounded-md transition-colors shadow-sm cursor-pointer self-start"
+                        >
+                          REMOVE
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+
+                {/* Add New Service Row */}
+                <tr>
+                  <td className="py-5 px-2">
+                    <select 
+                      value={selectedServiceGroup}
+                      onChange={(e) => setSelectedServiceGroup(e.target.value)}
+                      className="w-full border border-gray-300 rounded px-2 py-2 text-[12px] text-gray-500 focus:outline-none focus:border-[#00acc1] bg-white"
+                    >
+                      <option value="">-- Please Select Service --</option>
+                      {serviceGroups.map(sg => (
+                        <option key={sg.service_group_id} value={sg.service_group_id}>{sg.service_group_name}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="py-5 px-2">
+                    <select 
+                      value={selectedService}
+                      onChange={handleServiceChange}
+                      className="w-full border border-gray-300 rounded px-2 py-2 text-[12px] text-gray-500 focus:outline-none focus:border-[#00acc1] bg-white"
+                    >
+                      <option value="">-- Please Select Body Part --</option>
+                      {allServices
+                        .filter(svc => !selectedServiceGroup || String(svc.service_group) === String(selectedServiceGroup))
+                        .map(svc => (
+                          <option key={svc.service_id} value={svc.service_id}>{svc.service_name}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="py-5 px-2">
+                    <input type="text" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] focus:outline-none focus:border-[#00acc1] bg-white text-center" />
+                  </td>
+                  <td className="py-5 px-2">
+                    <input type="text" value={newNetPayable} onChange={(e) => setNewNetPayable(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] focus:outline-none focus:border-[#00acc1] bg-white text-center" />
+                  </td>
+                  <td className="py-5 px-2 text-center">
+                    <div className="flex justify-start pl-2">
+                      <button 
+                        onClick={handleAddService}
+                        className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[11px] font-bold py-1.5 px-4 rounded transition-colors shadow-sm cursor-pointer"
+                      >
+                        ADD
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-8">
+            <button 
+              onClick={handleCheckoutSubmit}
+              className="w-full bg-[#233560] text-white text-[13px] font-bold py-2.5 rounded hover:bg-[#1a2849] transition-colors flex justify-center items-center gap-2 shadow-sm cursor-pointer"
+            >
+              <i className="fas fa-shopping-cart"></i> CHECKOUT
+            </button>
           </div>
         </div>
       </div>
@@ -378,4 +482,4 @@ function AdminEditBooking() {
   );
 }
 
-export default AdminEditBooking;
+export default PartnerEditBooking;

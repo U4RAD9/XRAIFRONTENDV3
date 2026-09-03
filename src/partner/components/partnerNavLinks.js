@@ -8,10 +8,5 @@ export const partnerNavLinks = [
     path: '/partner/booking',
     icon: 'fas fa-calendar-alt',
     name: 'Booking'
-  },
-  {
-    path: '/partner/dummy-page',
-    icon: 'fas fa-file-alt',
-    name: 'Dummy Page'
   }
 ];

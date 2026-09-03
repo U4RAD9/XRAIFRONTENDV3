@@ -11,6 +11,8 @@ function AdminBookings() {
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [selectedBookingForFiles, setSelectedBookingForFiles] = useState(null);
   const [selectedBookingServices, setSelectedBookingServices] = useState([]);
+  const [prescriptionFile, setPrescriptionFile] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   
   const [columnFilters, setColumnFilters] = useState({
     patientId: '',
@@ -57,10 +59,14 @@ function AdminBookings() {
     setSelectedBookingForFiles(booking);
     setShowFilesModal(true);
     setSelectedBookingServices([]); // Reset while loading
+    setPrescriptionFile(null);
+    setImageFile(null);
     try {
       const response = await axiosInstance.get(`${ENDPOINTS.BOOKING_DETAILS}/${booking.id}`);
       if (response.data.Success) {
         setSelectedBookingServices(response.data.Booking.services || []);
+        setPrescriptionFile(response.data.Booking.prescriptionFile || null);
+        setImageFile(response.data.Booking.imageFile || null);
       }
     } catch (error) {
       console.error("Error fetching booking details for files:", error);
@@ -209,9 +215,33 @@ function AdminBookings() {
               <h2 className="text-2xl font-bold text-[#233560] mb-4">Files</h2>
               
               <div className="mb-6">
-                <button className="bg-[#ffca28] hover:bg-[#ffc107] text-white font-bold py-2 px-6 rounded uppercase shadow-sm">
+                <button 
+                  onClick={() => {
+                    if (prescriptionFile) {
+                      const files = prescriptionFile.split(',').filter(Boolean);
+                      if (files.length > 0) window.open(`${mediaBaseURL}/${files[0]}`, '_blank');
+                      else alert("No prescription file uploaded.");
+                    } else {
+                      alert("No prescription file uploaded.");
+                    }
+                  }}
+                  className="bg-[#ffca28] hover:bg-[#ffc107] text-white font-bold py-2 px-6 rounded uppercase shadow-sm mb-4"
+                >
                   View Prescription
                 </button>
+
+                {prescriptionFile && (
+                  <div className="mb-4">
+                    <h3 className="text-xl font-semibold text-[#233560] mb-2">Prescription</h3>
+                    <div className="flex flex-col gap-4">
+                      {prescriptionFile.split(',').filter(Boolean).map((file, idx) => (
+                        <div key={idx} className="h-[300px] border rounded overflow-hidden relative">
+                          <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}`} className="w-full h-full border-none" title={`Prescription File ${idx+1}`} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mb-6">
@@ -219,13 +249,17 @@ function AdminBookings() {
                 <div className="border border-gray-200 rounded min-h-[192px] w-full bg-gray-50 flex flex-col gap-4 p-4 overflow-y-auto">
                   {selectedBookingServices.length > 0 ? selectedBookingServices.map(svc => (
                      <div key={svc.id} className="w-full">
-                       {svc.serviceFile ? (
-                         <div className="h-[300px] border rounded overflow-hidden relative">
-                            <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.service}</div>
-                            <iframe src={`${mediaBaseURL}/${encodeURIComponent(svc.serviceFile)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Service File ${svc.service}`} />
+                       {svc.serviceFiles && svc.serviceFiles.length > 0 ? (
+                         <div className="flex flex-col gap-4">
+                           {svc.serviceFiles.map((file, idx) => (
+                             <div key={`svc-${svc.id}-${idx}`} className="h-[300px] border rounded overflow-hidden relative">
+                                <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
+                                <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Service File ${svc.bodyPart || svc.service} ${idx}`} />
+                             </div>
+                           ))}
                          </div>
                        ) : (
-                         <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No service file for {svc.service}</div>
+                         <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No service file for {svc.bodyPart || svc.service}</div>
                        )}
                      </div>
                   )) : <div className="text-gray-400 font-medium text-sm flex items-center justify-center h-full">Loading services...</div>}
@@ -237,13 +271,17 @@ function AdminBookings() {
                 <div className="border border-gray-200 rounded min-h-[192px] w-full bg-gray-50 flex flex-col gap-4 p-4 overflow-y-auto">
                   {selectedBookingServices.length > 0 ? selectedBookingServices.map(svc => (
                      <div key={svc.id} className="w-full">
-                       {svc.reportFile ? (
-                         <div className="h-[300px] border rounded overflow-hidden relative">
-                            <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.service}</div>
-                            <iframe src={`${mediaBaseURL}/${encodeURIComponent(svc.reportFile)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Report File ${svc.service}`} />
+                       {svc.reportFiles && svc.reportFiles.length > 0 ? (
+                         <div className="flex flex-col gap-4">
+                           {svc.reportFiles.map((file, idx) => (
+                             <div key={`rep-${svc.id}-${idx}`} className="h-[300px] border rounded overflow-hidden relative">
+                                <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
+                                <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Report File ${svc.bodyPart || svc.service} ${idx}`} />
+                             </div>
+                           ))}
                          </div>
                        ) : (
-                         <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No report file for {svc.service}</div>
+                         <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No report file for {svc.bodyPart || svc.service}</div>
                        )}
                      </div>
                   )) : <div className="text-gray-400 font-medium text-sm flex items-center justify-center h-full">Loading services...</div>}
