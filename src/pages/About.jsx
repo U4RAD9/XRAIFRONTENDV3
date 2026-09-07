@@ -171,14 +171,14 @@ function About() {
           
           <div className="flex flex-wrap justify-center gap-8 mb-16">
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="https://xraidigital.com/Content/images/team/CEO.png" alt="Partha Dey" className="w-full h-56 object-fill" />
+              <img src="/images/parthadey.jpg" alt="Partha Dey" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-lg">Partha Dey</h4>
                 <p className="text-sm text-[#11A8A4] font-semibold mt-1">Founder & CEO</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="https://xraidigital.com/Content/images/team/Director.png" alt="Dr Vivek Sahi" className="w-full h-56 object-fill" />
+              <img src="/images/viveksahi.jpg" alt="Dr Vivek Sahi" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-lg">Dr Vivek Sahi</h4>
                 <p className="text-sm text-[#11A8A4] font-semibold mt-1">Managing Director</p>
@@ -199,28 +199,21 @@ function About() {
           
           <div className="flex flex-wrap justify-center gap-8">
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="https://xraidigital.com/Content/images/team/Ruchi_mam.jpg" alt="Dr. Ruchi Jangra" className="w-full h-56 object-fill" />
-              <div className="p-4">
-                <h4 className="font-bold text-gray-800 text-md">Dr. Ruchi Jangra</h4>
-                <p className="text-xs text-[#11A8A4] font-semibold mt-1">Manager - Business Operations and Founder’s office representative</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="https://xraidigital.com/Content/images/team/ManagerPreSales.png" alt="Pooja Singh" className="w-full h-56 object-fill" />
+              <img src="/images/pooja.png" alt="Pooja Singh" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-md">Pooja Singh</h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Manager - Product and Pre-Sales</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="https://xraidigital.com/Content/images/team/Captain.png" alt="Aradhana Dutt" className="w-full h-56 object-fill" />
+              <img src="/images/aradhna.png" alt="Aradhana Dutt" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-md">Aradhana Dutt</h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Captain - New Initiatives</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="https://xraidigital.com/Content/images/team/BD.png" alt="Mr Dipanjan Paul" className="w-full h-56 object-fill" />
+              <img src="/images/dipanjan.png" alt="Mr Dipanjan Paul" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-md">Mr Dipanjan Paul</h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Strategy & BD</p>
