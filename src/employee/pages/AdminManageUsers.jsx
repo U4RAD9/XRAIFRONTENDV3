@@ -1,26 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from '../components/Modal';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 function AdminManageUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [currentUser, setCurrentUser] = useState({ id: null, username: '', password: '', mobile: '', userType: 'Patient' });
   const [isEditing, setIsEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentPage, debouncedSearch]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axiosInstance.get(ENDPOINTS.USERS);
+      const res = await axiosInstance.get(ENDPOINTS.USERS, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
+      
+      const data = res.data.results || res.data;
+      if (res.data.total_pages) {
+        setTotalPages(res.data.total_pages);
+      } else {
+        setTotalPages(1);
+      }
+
       // Map backend fields to frontend fields for the table
-      const mappedUsers = res.data.map(u => ({
+      const mappedUsers = (Array.isArray(data) ? data : []).map(u => ({
         id: u.id,
         username: u.user_name,
         password: u.password || '',
@@ -30,6 +52,8 @@ function AdminManageUsers() {
       setUsers(mappedUsers);
     } catch (err) {
       console.error('Error fetching users', err);
+      setTotalPages(1);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -39,11 +63,7 @@ function AdminManageUsers() {
     setSearchQuery(e.target.value);
   };
 
-  const filteredUsers = users.filter(user => 
-    (user.username && user.username.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (user.mobile && user.mobile.includes(searchQuery)) ||
-    (user.userType && user.userType.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredUsers = users;
 
   const openNewModal = () => {
     setCurrentUser({ id: null, username: '', password: '', mobile: '', userType: 'Patient' });
@@ -156,6 +176,11 @@ function AdminManageUsers() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={(page) => setCurrentPage(page)} 
+        />
       </div>
 
       {/* Modal */}

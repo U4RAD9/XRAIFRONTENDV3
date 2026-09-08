@@ -1,24 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from '../components/Modal';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 function AdminPatients() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchPatients();
-  }, []);
+  }, [currentPage, debouncedSearch]);
 
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(ENDPOINTS.PATIENTS);
-      const mapped = response.data.map(p => ({
+      const response = await axiosInstance.get(ENDPOINTS.PATIENTS, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
+      
+      const data = response.data.results || response.data;
+      if (response.data.total_pages) {
+        setTotalPages(response.data.total_pages);
+      } else {
+        setTotalPages(1);
+      }
+
+      const mapped = (Array.isArray(data) ? data : []).map(p => ({
         id: p.patient_id,
         patientName: p.patient_name,
         age: p.age || 'N/A',
@@ -56,11 +78,7 @@ function AdminPatients() {
     { key: 'bp', label: 'BP' }
   ];
 
-  const filteredPatients = patients.filter(p => 
-    p.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.contactNo.includes(searchQuery) ||
-    p.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPatients = patients;
 
   return (
     <div className='w-full'>
@@ -130,6 +148,11 @@ function AdminPatients() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={(page) => setCurrentPage(page)} 
+        />
       </div>
 
       {/* Edit Patient Modal */}

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
@@ -9,6 +10,7 @@ function PartnerBooking() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('table');
   const [globalSearch, setGlobalSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [selectedBookingForFiles, setSelectedBookingForFiles] = useState(null);
   const [selectedBookingServices, setSelectedBookingServices] = useState([]);
@@ -17,17 +19,35 @@ function PartnerBooking() {
   
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(globalSearch);
+      setCurrentPage(1); // Reset to first page on new search
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [globalSearch]);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [currentPage, debouncedSearch]);
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      // Assuming ALL_BOOKINGS returns the bookings relevant to the logged-in partner based on token
-      const response = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS);
-      let data = response.data.result;
+      const response = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
+      
+      let data = response.data.result || response.data.results;
+      if (response.data.total_pages) {
+        setTotalPages(response.data.total_pages);
+      } else {
+        setTotalPages(1);
+      }
+
       if (!data || data.length === 0) {
         data = [];
       }
@@ -35,6 +55,7 @@ function PartnerBooking() {
     } catch (error) {
       console.error("Error fetching bookings:", error);
       setBookings([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -58,15 +79,11 @@ function PartnerBooking() {
     }
   };
 
-  const filteredBookings = bookings.filter(booking => {
-    // Global search
-    return Object.values(booking).some(val => 
-      String(val).toLowerCase().includes(globalSearch.toLowerCase())
-    );
-  });
+  // We are now fetching from backend so no need to filter locally
+  const filteredBookings = bookings;
 
   const columns = [
-    { key: 'patientId', label: 'PATIENT ID' },
+    { key: 'sno', label: 'S#' },
     { key: 'phoneNo', label: 'PHONE NO.' },
     { key: 'patientName', label: 'PATIENT NAME' },
     { key: 'refNo', label: 'REF NO' },
@@ -144,9 +161,9 @@ function PartnerBooking() {
                   </td>
                 </tr>
               ) : (
-                filteredBookings.map(booking => (
+                filteredBookings.map((booking, index) => (
                   <tr key={booking.id} className="hover:bg-[#11A8A4]/5 transition-colors duration-150">
-                    <td className="py-3 px-4 text-center">{booking.patientId}</td>
+                    <td className="py-3 px-4 text-center">{index + 1}</td>
                     <td className="py-3 px-4 text-center">{booking.phoneNo}</td>
                     <td className="py-3 px-4 text-center">{booking.patientName}</td>
                     <td className="py-3 px-4 text-center">{booking.refNo}</td>
@@ -185,6 +202,11 @@ function PartnerBooking() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={(page) => setCurrentPage(page)} 
+        />
       </div>
 
       {/* GRID VIEW (Visible on Mobile Always, Visible on Desktop if viewMode === 'grid') */}
@@ -194,12 +216,12 @@ function PartnerBooking() {
         ) : filteredBookings.length === 0 ? (
           <div className="col-span-full py-8 text-center text-gray-500">No bookings found.</div>
         ) : (
-          filteredBookings.map(booking => (
+          filteredBookings.map((booking, index) => (
             <div key={booking.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex flex-col hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">
                 <div>
                   <h3 className="font-bold text-[#233560]">{booking.patientName}</h3>
-                  <p className="text-xs text-gray-500">ID: {booking.patientId} | Ref: {booking.refNo}</p>
+                  <p className="text-xs text-gray-500">S#: {index + 1} | Ref: {booking.refNo}</p>
                 </div>
                 <span className={`px-2 py-1 rounded text-[10px] font-bold ${
                   booking.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
@@ -234,6 +256,16 @@ function PartnerBooking() {
           ))
         )}
       </div>
+
+      {viewMode === 'grid' && totalPages > 1 && (
+        <div className="mt-6 shadow-lg rounded-xl overflow-hidden border border-gray-100">
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={(page) => setCurrentPage(page)} 
+          />
+        </div>
+      )}
 
       {/* Files Modal */}
       {showFilesModal && (

@@ -42,6 +42,11 @@ function PartnerMakeBooking() {
     service: '', bodyPart: '', price: '', netPayable: ''
   });
 
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [apiOffers, setApiOffers] = useState([]);
+  const [selectedOfferId, setSelectedOfferId] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+
   const [apiLocations, setApiLocations] = useState([]);
   const [apiSlots, setApiSlots] = useState([]);
   const [apiServiceGroups, setApiServiceGroups] = useState([]);
@@ -50,11 +55,12 @@ function PartnerMakeBooking() {
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const [locationsRes, slotsRes, groupsRes, servicesRes] = await Promise.all([
+        const [locationsRes, slotsRes, groupsRes, servicesRes, offersRes] = await Promise.all([
           axiosInstance.get(ENDPOINTS.LOCATIONS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.GET_SLOTS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.SERVICE_GROUPS).catch(() => ({ data: [] })),
-          axiosInstance.get(ENDPOINTS.SERVICES).catch(() => ({ data: [] }))
+          axiosInstance.get(ENDPOINTS.SERVICES).catch(() => ({ data: [] })),
+          axiosInstance.get(ENDPOINTS.OFFER_MASTER).catch(() => ({ data: [] }))
         ]);
         const getArrayData = (res) => {
           if (Array.isArray(res.data)) return res.data;
@@ -67,6 +73,12 @@ function PartnerMakeBooking() {
         setApiSlots(getArrayData(slotsRes).filter(x => x.is_active !== false));
         setApiServiceGroups(getArrayData(groupsRes).filter(x => x.is_active !== false));
         setAllApiServices(getArrayData(servicesRes).filter(x => x.is_active !== false));
+        const userType = sessionStorage.getItem('UserType') || '';
+        setApiOffers(getArrayData(offersRes).filter(x => {
+          if (x.is_active === false) return false;
+          if (!x.user_type_name) return true;
+          return x.user_type_name.toLowerCase().includes(userType.toLowerCase());
+        }));
       } catch (err) {
         console.error('Error fetching master data:', err);
       }
@@ -199,6 +211,28 @@ function PartnerMakeBooking() {
     setShowCameraModal(false);
   };
 
+  const calculateSubtotal = () => serviceItems.reduce((acc, item) => acc + parseFloat(item.price || 0), 0);
+  const getNetTotal = () => Math.max(0, calculateSubtotal() - discountAmount);
+
+  const applyOffer = (offerId) => {
+    setSelectedOfferId(offerId);
+    if (!offerId) {
+      setDiscountAmount(0);
+      return;
+    }
+    const offer = apiOffers.find(o => o.id.toString() === offerId.toString());
+    if (offer) {
+      const subtotal = calculateSubtotal();
+      if (offer.discount_type === 'Percentage' || offer.discount <= 100) {
+         setDiscountAmount((subtotal * parseFloat(offer.discount)) / 100);
+      } else {
+         setDiscountAmount(parseFloat(offer.discount));
+      }
+    } else {
+      setDiscountAmount(0);
+    }
+  };
+
   const handleCheckoutSubmit = async () => {
     if (paymentMode === 'ONLINE') {
       alert("Redirecting to payment page (placeholder)...");
@@ -218,6 +252,8 @@ function PartnerMakeBooking() {
         payment_method: paymentMode,
         payment_status: 'Unpaid',
         consent_given: consentChecked,
+        gross_amount: calculateSubtotal(),
+        amount: getNetTotal(),
         services: serviceItems.map(item => ({
           service_id: item.bodyPart,
           price: item.price
@@ -582,6 +618,119 @@ function PartnerMakeBooking() {
           </div>
         </div>
       )}
+
+      {/* Cart / Billing Modal */}
+      {showCartModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[60]" onClick={() => setShowCartModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200 bg-gray-50/50">
+              <h3 className="text-2xl font-bold text-[#35435e]"><i className="fas fa-shopping-cart text-[#00acc1] mr-2"></i> Cart & Billing</h3>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              
+              {/* Selected Services */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Selected Services</h4>
+                <div className="bg-white border border-gray-100 rounded-lg shadow-sm overflow-hidden">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 text-gray-600">
+                      <tr>
+                        <th className="px-4 py-2 font-semibold">Service</th>
+                        <th className="px-4 py-2 font-semibold text-right">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-800">
+                      {serviceItems.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="px-4 py-3">{item.serviceName} - {item.bodyPartName}</td>
+                          <td className="px-4 py-3 text-right font-medium">₹{parseFloat(item.price).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Coupons & Totals */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Apply Coupon / Offer</label>
+                  <select 
+                    value={selectedOfferId}
+                    onChange={(e) => applyOffer(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#00acc1] focus:ring-1 focus:ring-[#00acc1] transition-colors"
+                  >
+                    <option value="">No Coupon</option>
+                    {apiOffers.map(o => (
+                      <option key={o.id} value={o.id}>{o.offer_name} ({o.discount}{o.discount_type === 'Percentage' || o.discount <= 100 ? '%' : ' ₹'} off)</option>
+                    ))}
+                  </select>
+                  
+                  <div className="mt-4">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Location</label>
+                  <select 
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#00acc1] focus:ring-1 focus:ring-[#00acc1] transition-colors"
+                  >
+                    <option value="">Select Location</option>
+                    {apiLocations.map(l => (
+                      <option key={l.location_id} value={l.location_id}>{l.location_name}</option>
+                    ))}
+                  </select>
+                </div>
+                  
+                  <div className="mt-4">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Payment Mode</label>
+                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                      <button type="button" onClick={() => setPaymentMode('ONLINE')} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${paymentMode === 'ONLINE' ? 'bg-white text-[#00acc1] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>ONLINE</button>
+                      <button type="button" onClick={() => setPaymentMode('CASH')} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${paymentMode === 'CASH' ? 'bg-white text-[#00acc1] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>CASH</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Subtotal:</span>
+                      <span className="font-semibold">₹{calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount:</span>
+                      <span className="font-semibold">- ₹{discountAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
+                      <span className="text-lg font-bold text-gray-800">Net Payable:</span>
+                      <span className="text-2xl font-bold text-[#00acc1]">₹{getNetTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 flex justify-end gap-4 bg-gray-50">
+              <button 
+                onClick={() => setShowCartModal(false)}
+                className="px-6 py-2.5 border border-gray-300 text-gray-600 font-bold rounded-lg shadow-sm hover:bg-white transition-colors bg-white cursor-pointer"
+              >
+                Back
+              </button>
+              <button 
+                onClick={() => {
+                  setShowCartModal(false);
+                  setShowConsentModal(true);
+                }}
+                className="px-8 py-2.5 bg-gradient-to-r from-[#00acc1] to-[#008ba3] hover:from-[#009cb0] hover:to-[#007d93] text-white font-bold rounded-lg shadow-md transition-transform transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                Proceed to Consent
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

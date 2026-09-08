@@ -15,9 +15,13 @@ function AdminDashboard() {
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Date state initialized to today
-  const [fromDate, setFromDate] = useState(new Date().toISOString().split('T')[0]);
-  const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  
+  // Date state initialized to empty to show all-time stats by default
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   useEffect(() => {
     fetchStats();
@@ -39,17 +43,36 @@ function AdminDashboard() {
     setLoadingBookings(true);
     try {
       const res = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS);
-      if (res.data.Success) {
-        setBookings(res.data.result || []);
-      } else {
-        setBookings(res.data || []);
-      }
+      const data = res.data.results || res.data.result || res.data;
+      setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch admin bookings', err);
     } finally {
       setLoadingBookings(false);
     }
   };
+
+  const handleViewDetails = async (id) => {
+    setShowDetailsModal(true);
+    setLoadingDetails(true);
+    setSelectedBookingDetails(null);
+    try {
+      const response = await axiosInstance.get(`${ENDPOINTS.BOOKING_DETAILS}/${id}`);
+      if (response.data.Success) {
+        setSelectedBookingDetails(response.data.Booking);
+      } else {
+        alert("Failed to fetch details.");
+        setShowDetailsModal(false);
+      }
+    } catch (err) {
+      console.error('Failed to fetch details:', err);
+      alert("Error fetching details.");
+      setShowDetailsModal(false);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   const filteredBookings = bookings.filter(b => 
     b.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     b.phoneNo?.includes(searchTerm) ||
@@ -82,7 +105,7 @@ function AdminDashboard() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
           <div>
@@ -121,26 +144,6 @@ function AdminDashboard() {
           </div>
           <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
             <i className="fas fa-clipboard-check"></i>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Reports</p>
-            <h3 className="text-2xl font-bold text-gray-800 mt-1">{stats.ReportFilesUploaded}</h3>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
-            <i className="fas fa-file-medical-alt"></i>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Service Files</p>
-            <h3 className="text-2xl font-bold text-gray-800 mt-1">{stats.ServiceFilesUploaded}</h3>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center text-pink-600">
-            <i className="fas fa-file-upload"></i>
           </div>
         </div>
 
@@ -213,7 +216,12 @@ function AdminDashboard() {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex justify-center gap-2">
-                        <button className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded text-sm font-semibold transition-colors">Details</button>
+                        <button 
+                          onClick={() => handleViewDetails(booking.id)}
+                          className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer"
+                        >
+                          Details
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -223,6 +231,88 @@ function AdminDashboard() {
           </table>
         </div>
       </div>
+
+      {/* Details Modal */}
+      {showDetailsModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setShowDetailsModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 flex flex-col overflow-y-auto">
+              <h2 className="text-2xl font-bold text-[#233560] mb-4">Booking Details</h2>
+              {loadingDetails ? (
+                <div className="py-12 text-center text-gray-500 font-semibold">
+                  <i className="fas fa-spinner fa-spin mr-2"></i> Loading details...
+                </div>
+              ) : selectedBookingDetails ? (
+                <div className="space-y-6">
+                  {/* Patient Info */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i className="fas fa-user-injured text-blue-500 mr-2"></i>Patient Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div><span className="text-sm text-gray-500 font-semibold">Name:</span> <span className="font-bold text-gray-800">{selectedBookingDetails.patient.patientName}</span></div>
+                      <div><span className="text-sm text-gray-500 font-semibold">Phone:</span> <span className="text-gray-800">{selectedBookingDetails.patient.phoneNo}</span></div>
+                      <div><span className="text-sm text-gray-500 font-semibold">Age/Gender:</span> <span className="text-gray-800">{selectedBookingDetails.patient.age} / {selectedBookingDetails.patient.gender}</span></div>
+                      <div><span className="text-sm text-gray-500 font-semibold">Email:</span> <span className="text-gray-800">{selectedBookingDetails.patient.email}</span></div>
+                      <div className="md:col-span-2"><span className="text-sm text-gray-500 font-semibold">Address:</span> <span className="text-gray-800">{selectedBookingDetails.patient.address}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Booking Info */}
+                  <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                    <h3 className="text-lg font-bold text-[#233560] mb-3 border-b border-blue-100 pb-2"><i className="fas fa-calendar-check text-blue-500 mr-2"></i>Booking Info</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div><span className="text-sm text-gray-500 font-semibold">ID:</span> <span className="font-bold text-[#00acc1]">#{selectedBookingDetails.id}</span></div>
+                      <div><span className="text-sm text-gray-500 font-semibold">Date & Slot:</span> <span className="text-gray-800">{selectedBookingDetails.visit_date} ({selectedBookingDetails.slot_name})</span></div>
+                      <div><span className="text-sm text-gray-500 font-semibold">Location:</span> <span className="text-gray-800">{selectedBookingDetails.location_name}</span></div>
+                      <div><span className="text-sm text-gray-500 font-semibold">Payment:</span> <span className="text-gray-800">{selectedBookingDetails.payment_mode}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i className="fas fa-stethoscope text-blue-500 mr-2"></i>Services</h3>
+                    {selectedBookingDetails.services && selectedBookingDetails.services.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                          <thead className="text-gray-500 uppercase font-semibold">
+                            <tr>
+                              <th className="pb-2">Group</th>
+                              <th className="pb-2">Service</th>
+                              <th className="pb-2 text-right">Price</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 text-gray-800">
+                            {selectedBookingDetails.services.map((svc, index) => (
+                              <tr key={index}>
+                                <td className="py-2">{svc.service}</td>
+                                <td className="py-2 font-medium">{svc.bodyPart}</td>
+                                <td className="py-2 text-right font-bold text-green-600">₹{svc.netPayable}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">No services listed.</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-red-500 font-semibold">Failed to load details.</div>
+              )}
+              
+              <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                <button 
+                  onClick={() => setShowDetailsModal(false)} 
+                  className="px-6 py-2 bg-gray-100 text-gray-700 font-bold rounded hover:bg-gray-200 transition-colors uppercase cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

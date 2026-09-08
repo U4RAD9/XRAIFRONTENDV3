@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
 function AdminBookings() {
   const navigate = useNavigate();
   const [globalSearch, setGlobalSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [selectedBookingForFiles, setSelectedBookingForFiles] = useState(null);
   const [selectedBookingServices, setSelectedBookingServices] = useState([]);
@@ -28,19 +30,38 @@ function AdminBookings() {
   });
 
   const [bookings, setBookings] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(globalSearch);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [globalSearch]);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [currentPage, debouncedSearch]);
 
   const fetchBookings = async () => {
     try {
-      const response = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS);
-      if (response.data.Success) {
-        setBookings(response.data.result);
+      const response = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
+      let data = response.data.result || response.data.results;
+      if (response.data.total_pages) {
+        setTotalPages(response.data.total_pages);
+      } else {
+        setTotalPages(1);
       }
+      if (!data || data.length === 0) data = [];
+      setBookings(data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
+      setBookings([]);
+      setTotalPages(1);
     }
   };
 
@@ -81,18 +102,11 @@ function AdminBookings() {
   };
 
   const filteredBookings = bookings.filter(booking => {
-    // Global search
-    const matchesGlobal = Object.values(booking).some(val => 
-      String(val).toLowerCase().includes(globalSearch.toLowerCase())
-    );
-
-    // Column filters
     const matchesColumns = Object.keys(columnFilters).every(key => {
       if (!columnFilters[key]) return true;
       return String(booking[key]).toLowerCase().includes(columnFilters[key].toLowerCase());
     });
-
-    return matchesGlobal && matchesColumns;
+    return matchesColumns;
   });
 
   const columns = [
@@ -205,6 +219,11 @@ function AdminBookings() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={(page) => setCurrentPage(page)} 
+        />
       </div>
 
       {/* Files Modal */}

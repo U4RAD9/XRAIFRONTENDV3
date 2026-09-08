@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
 function TechnicianDashboard() {
   const navigate = useNavigate();
   const [globalSearch, setGlobalSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState({ pending: 0, completed: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [selectedBookingForFiles, setSelectedBookingForFiles] = useState(null);
   const [selectedBookingServices, setSelectedBookingServices] = useState([]);
   const [selectedBookingPrescription, setSelectedBookingPrescription] = useState(null);
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(globalSearch);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [globalSearch]);
+
+  useEffect(() => {
     fetchTechnicianData();
-  }, []);
+  }, [currentPage, debouncedSearch]);
 
   const handleViewFiles = async (booking) => {
     setSelectedBookingForFiles(booking);
@@ -103,13 +115,20 @@ function TechnicianDashboard() {
     try {
       setLoading(true);
       const technicianId = sessionStorage.getItem('UserID');
-      const response = await axiosInstance.get(`${ENDPOINTS.TECHNICIAN_BOOKINGS}?technician_id=${technicianId}`);
+      const response = await axiosInstance.get(`${ENDPOINTS.TECHNICIAN_BOOKINGS}?technician_id=${technicianId}`, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
       if (response.data.Success) {
-        setBookings(response.data.result.Bookings);
+        setBookings(response.data.result.Bookings || []);
         setStats({
-          pending: response.data.result.PendingCases,
-          completed: response.data.result.CompletedCases
+          pending: response.data.result.PendingCases || 0,
+          completed: response.data.result.CompletedCases || 0
         });
+        if (response.data.total_pages) {
+          setTotalPages(response.data.total_pages);
+        } else {
+          setTotalPages(1);
+        }
       }
     } catch (error) {
       console.error("Error fetching technician data:", error);
@@ -122,12 +141,7 @@ function TechnicianDashboard() {
     setGlobalSearch(e.target.value);
   };
 
-  const filteredBookings = bookings.filter(booking => {
-    const matchesGlobal = Object.values(booking).some(val => 
-      String(val).toLowerCase().includes(globalSearch.toLowerCase())
-    );
-    return matchesGlobal;
-  });
+  const filteredBookings = bookings;
 
   const columns = [
     { key: 'patientId', label: 'PATIENT ID' },
@@ -290,6 +304,11 @@ function TechnicianDashboard() {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={(page) => setCurrentPage(page)} 
+        />
       </div>
 
       {/* Files Modal */}
