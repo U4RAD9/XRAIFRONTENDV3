@@ -15,6 +15,8 @@ export default defineConfig({
 
     allowedHosts: [
       'test2.xraidigital.com',
+      'admin.xraidigital.com',
+      'xraidigital.com',
     ],
   },
 })
