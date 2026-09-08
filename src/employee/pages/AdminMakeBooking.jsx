@@ -4,6 +4,7 @@ import PatientCard from '../components/PatientCard';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
 import Modal from '../components/Modal';
+import Pagination from '../../components/Pagination';
 
 function AdminMakeBooking() {
   const [viewMode, setViewMode] = useState('table');
@@ -13,6 +14,11 @@ function AdminMakeBooking() {
   const [newPatient, setNewPatient] = useState({
     name: '', age: '', weight: '', gender: '', height: '', bp: '', address: '', pin: '', email: '', alternateMobile: '', comment: ''
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [loadingPatients, setLoadingPatients] = useState(false);
 
   const navigate = useNavigate();
 
@@ -42,12 +48,11 @@ function AdminMakeBooking() {
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const [locationsRes, slotsRes, groupsRes, servicesRes, patientsRes, offersRes] = await Promise.all([
+        const [locationsRes, slotsRes, groupsRes, servicesRes, offersRes] = await Promise.all([
           axiosInstance.get(ENDPOINTS.LOCATIONS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.GET_SLOTS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.SERVICE_GROUPS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.SERVICES).catch(() => ({ data: [] })),
-          axiosInstance.get(ENDPOINTS.PATIENTS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.OFFER_MASTER).catch(() => ({ data: [] }))
         ]);
         const getArrayData = (res) => {
@@ -63,7 +68,6 @@ function AdminMakeBooking() {
         setApiSlots(getArrayData(slotsRes).filter(x => x.is_active !== false));
         setApiServiceGroups(getArrayData(groupsRes).filter(x => x.is_active !== false));
         setAllApiServices(getArrayData(servicesRes).filter(x => x.is_active !== false));
-        setPatients(getArrayData(patientsRes));
         const userType = sessionStorage.getItem('UserType') || '';
         setApiOffers(getArrayData(offersRes).filter(x => {
           if (x.is_active === false) return false;
@@ -82,6 +86,40 @@ function AdminMakeBooking() {
   const [currentBookingId, setCurrentBookingId] = useState(null);
 
   const [patients, setPatients] = useState([]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [currentPage, debouncedSearch]);
+
+  const fetchPatients = async () => {
+    try {
+      setLoadingPatients(true);
+      const response = await axiosInstance.get(ENDPOINTS.PATIENTS, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
+      const data = response.data.results || response.data;
+      if (response.data.total_pages) {
+        setTotalPages(response.data.total_pages);
+      } else {
+        setTotalPages(1);
+      }
+      setPatients(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+      setPatients([]);
+      setTotalPages(1);
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
 
   const handleBookSlot = async (patient) => {
     setSelectedPatientForBooking(patient);
@@ -326,10 +364,7 @@ function AdminMakeBooking() {
     }
   };
 
-  const filteredPatients = Array.isArray(patients) ? patients.filter(p => 
-    (p.patient_name && p.patient_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (p.email && p.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) : [];
+  // The filtering is now handled server-side
 
   if (selectedPatientForBooking) {
     return (
@@ -868,12 +903,18 @@ function AdminMakeBooking() {
                 </tr>
               </thead>
               <tbody className="text-gray-600 divide-y divide-gray-100 text-sm">
-                {filteredPatients.length === 0 ? (
+                {loadingPatients ? (
+                  <tr>
+                    <td colSpan="12" className="py-12 text-center text-gray-500 font-semibold">
+                      <i className="fas fa-spinner fa-spin mr-2"></i> Loading patients...
+                    </td>
+                  </tr>
+                ) : patients.length === 0 ? (
                   <tr>
                     <td colSpan="12" className="py-8 text-center text-gray-500">No patients found.</td>
                   </tr>
                 ) : (
-                  filteredPatients.map(p => (
+                  patients.map(p => (
                     <tr key={p.patient_id} className="hover:bg-blue-50 transition-colors duration-150">
                       <td className="py-3 px-4 text-left">{p.patient_name}</td>
                       <td className="py-3 px-4 text-center">{p.age}</td>
@@ -900,15 +941,41 @@ function AdminMakeBooking() {
               </tbody>
             </table>
           </div>
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-center bg-gray-50/50">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPatients.length === 0 ? (
-            <div className="col-span-full py-8 text-center text-gray-500">No patients found.</div>
+        <div className="w-full flex flex-col gap-6">
+          {loadingPatients ? (
+            <div className="py-12 text-center text-gray-500 font-semibold w-full">
+              <i className="fas fa-spinner fa-spin mr-2"></i> Loading patients...
+            </div>
+          ) : patients.length === 0 ? (
+            <div className="py-8 text-center text-gray-500 w-full">No patients found.</div>
           ) : (
-            filteredPatients.map(p => (
-              <PatientCard key={p.id} patient={p} onBookSlot={handleBookSlot} />
-            ))
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
+                {patients.map(p => (
+                  <PatientCard key={p.id || p.patient_id} patient={p} onBookSlot={handleBookSlot} />
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-6 w-full">
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

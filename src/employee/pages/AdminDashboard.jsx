@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
@@ -14,6 +15,9 @@ function AdminDashboard() {
   });
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
@@ -24,9 +28,20 @@ function AdminDashboard() {
   const [toDate, setToDate] = useState('');
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  useEffect(() => {
     fetchStats();
-    fetchBookings();
   }, [fromDate, toDate]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fromDate, toDate, currentPage, debouncedSearch]);
 
   const fetchStats = async () => {
     try {
@@ -42,8 +57,15 @@ function AdminDashboard() {
   const fetchBookings = async () => {
     setLoadingBookings(true);
     try {
-      const res = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS);
+      const res = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS, {
+        params: { page: currentPage, search: debouncedSearch, date: fromDate } // date can be passed if supported by backend
+      });
       const data = res.data.results || res.data.result || res.data;
+      if (res.data.total_pages) {
+        setTotalPages(res.data.total_pages);
+      } else {
+        setTotalPages(1);
+      }
       setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch admin bookings', err);
@@ -73,11 +95,7 @@ function AdminDashboard() {
     }
   };
 
-  const filteredBookings = bookings.filter(b => 
-    b.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.phoneNo?.includes(searchTerm) ||
-    b.id?.toString().includes(searchTerm)
-  );
+  // The filtering is now handled server-side
 
   return (
     <div className="space-y-6">
@@ -186,12 +204,12 @@ function AdminDashboard() {
                     <i className="fas fa-spinner fa-spin mr-2"></i> Loading data...
                   </td>
                 </tr>
-              ) : filteredBookings.length === 0 ? (
+              ) : bookings.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="py-12 text-center text-gray-500 font-semibold">No bookings found.</td>
                 </tr>
               ) : (
-                filteredBookings.map((booking, idx) => (
+                bookings.map((booking, idx) => (
                   <tr key={idx} className="hover:bg-blue-50/50 transition duration-150">
                     <td className="py-4 px-6 font-semibold text-[#00acc1]">#{booking.id}</td>
                     <td className="py-4 px-6 text-sm">{booking.date} {booking.time}</td>
@@ -230,6 +248,16 @@ function AdminDashboard() {
             </tbody>
           </table>
         </div>
+        
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-center bg-gray-50/50">
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Details Modal */}

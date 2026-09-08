@@ -1,9 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '../../api/axiosInstance';
+import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
 
 function AdminBookingReport() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [reports] = useState([]);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [currentPage, debouncedSearch]);
+
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get(ENDPOINTS.ALL_BOOKINGS, {
+        params: { page: currentPage, search: debouncedSearch }
+      });
+      const data = res.data.results || res.data.result || res.data;
+      if (res.data.total_pages) {
+        setTotalPages(res.data.total_pages);
+      } else {
+        setTotalPages(1);
+      }
+      setReports(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch admin bookings report', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const columns = [
     { key: 'name', label: 'NAME' },
@@ -23,11 +62,7 @@ function AdminBookingReport() {
     { key: 'netAmount', label: 'NETAMOUNT' }
   ];
 
-  const filteredReports = reports.filter(r => 
-    r.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.patientId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.phoneNo.includes(searchQuery)
-  );
+  // Server-side search and pagination handled via API
 
   return (
     <div className='w-full'>
@@ -61,18 +96,24 @@ function AdminBookingReport() {
               </tr>
             </thead>
             <tbody className="text-gray-600 divide-y divide-gray-100 text-sm">
-              {filteredReports.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={columns.length} className="py-12 text-center text-gray-500 font-semibold">
+                    <i className="fas fa-spinner fa-spin mr-2"></i> Loading reports...
+                  </td>
+                </tr>
+              ) : reports.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} className="py-8 text-center text-gray-500">
                     No reports found.
                   </td>
                 </tr>
               ) : (
-                filteredReports.map(report => (
-                  <tr key={report.id} className="hover:bg-blue-50 transition-colors duration-150">
+                reports.map((report, idx) => (
+                  <tr key={report.id || idx} className="hover:bg-blue-50 transition-colors duration-150">
                     {columns.map(col => (
                       <td key={col.key} className="py-3 px-4 text-center">
-                        {report[col.key]}
+                        {report[col.key] !== undefined && report[col.key] !== null ? String(report[col.key]) : 'N/A'}
                       </td>
                     ))}
                   </tr>
@@ -81,6 +122,15 @@ function AdminBookingReport() {
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-center bg-gray-50/50">
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
