@@ -90,7 +90,7 @@ function AdminEditBooking() {
     const fetchTechnicians = async () => {
       try {
         const response = await axiosInstance.get(ENDPOINTS.USERS);
-        const allUsers = response.data.result || response.data || [];
+        const allUsers = response.data.results || response.data.result || (Array.isArray(response.data) ? response.data : []);
         const techs = allUsers.filter(user => user.user_type_name === 'Technician');
         setApiTechnicians(techs);
       } catch (err) {
