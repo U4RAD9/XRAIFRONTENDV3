@@ -55,12 +55,13 @@ function PartnerMakeBooking() {
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const [locationsRes, slotsRes, groupsRes, servicesRes, offersRes] = await Promise.all([
+        const [locationsRes, slotsRes, groupsRes, servicesRes, offersRes, userTypesRes] = await Promise.all([
           axiosInstance.get(ENDPOINTS.LOCATIONS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.GET_SLOTS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.SERVICE_GROUPS).catch(() => ({ data: [] })),
           axiosInstance.get(ENDPOINTS.SERVICES).catch(() => ({ data: [] })),
-          axiosInstance.get(ENDPOINTS.OFFER_MASTER).catch(() => ({ data: [] }))
+          axiosInstance.get(ENDPOINTS.OFFER_MASTER).catch(() => ({ data: [] })),
+          axiosInstance.get(ENDPOINTS.USER_TYPES).catch(() => ({ data: [] }))
         ]);
         const getArrayData = (res) => {
           if (Array.isArray(res.data)) return res.data;
@@ -73,12 +74,37 @@ function PartnerMakeBooking() {
         setApiSlots(getArrayData(slotsRes).filter(x => x.is_active !== false));
         setApiServiceGroups(getArrayData(groupsRes).filter(x => x.is_active !== false));
         setAllApiServices(getArrayData(servicesRes).filter(x => x.is_active !== false));
-        const userType = sessionStorage.getItem('UserType') || '';
-        setApiOffers(getArrayData(offersRes).filter(x => {
+        
+        const userTypeString = (sessionStorage.getItem('UserType') || '').trim().toLowerCase();
+        const allUserTypes = getArrayData(userTypesRes);
+        const currentUserTypeObj = allUserTypes.find(ut => (ut.user_type_name || ut.name || '').toLowerCase() === userTypeString);
+        const currentUserTypeId = currentUserTypeObj ? (currentUserTypeObj.id || currentUserTypeObj.user_type_id || currentUserTypeObj._id) : null;
+        
+        const filteredOffers = getArrayData(offersRes).filter(x => {
           if (x.is_active === false) return false;
-          if (!x.user_type_name) return true;
-          return x.user_type_name.toLowerCase().includes(userType.toLowerCase());
-        }));
+          
+          if ((!x.user_type_name || x.user_type_name.length === 0) && (!x.user_type || x.user_type.length === 0)) return true;
+          
+          let offerUserTypesStr = "";
+          if (Array.isArray(x.user_type_name)) {
+            offerUserTypesStr = x.user_type_name.map(ut => typeof ut === 'string' ? ut : (ut.name || ut.user_type_name || '')).join(',').toLowerCase();
+          } else {
+            offerUserTypesStr = String(x.user_type_name || '').toLowerCase();
+          }
+          
+          if (userTypeString && offerUserTypesStr.includes(userTypeString)) return true;
+          
+          if (currentUserTypeId && Array.isArray(x.user_type)) {
+            const hasId = x.user_type.some(idObj => {
+              const id = typeof idObj === 'object' ? (idObj.id || idObj.user_type_id || idObj._id) : idObj;
+              return id === currentUserTypeId;
+            });
+            if (hasId) return true;
+          }
+          
+          return false;
+        });
+        setApiOffers(filteredOffers);
       } catch (err) {
         console.error('Error fetching master data:', err);
       }
