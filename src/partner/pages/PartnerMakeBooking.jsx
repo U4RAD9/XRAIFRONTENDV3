@@ -538,7 +538,13 @@ function PartnerMakeBooking() {
           )}
 
           <button 
-            onClick={() => setShowConsentModal(true)}
+            onClick={() => {
+              if(serviceItems.length === 0) {
+                alert("Please add at least one service to checkout.");
+                return;
+              }
+              setShowCartModal(true);
+            }}
             className="w-full bg-[#283556] hover:bg-[#1a233a] text-white font-bold py-3 rounded shadow-md transition-colors text-sm tracking-wider cursor-pointer flex items-center justify-center"
           >
             <i className="fas fa-shopping-cart mr-2"></i> CHECKOUT
@@ -666,20 +672,6 @@ function PartnerMakeBooking() {
                       <option key={o.id} value={o.id}>{o.offer_name} ({o.discount}{o.discount_type === 'Percentage' || o.discount <= 100 ? '%' : ' ₹'} off)</option>
                     ))}
                   </select>
-                  
-                  <div className="mt-4">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Location</label>
-                  <select 
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#00acc1] focus:ring-1 focus:ring-[#00acc1] transition-colors"
-                  >
-                    <option value="">Select Location</option>
-                    {apiLocations.map(l => (
-                      <option key={l.location_id} value={l.location_id}>{l.location_name}</option>
-                    ))}
-                  </select>
-                </div>
                   
                   <div className="mt-4">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Payment Mode</label>

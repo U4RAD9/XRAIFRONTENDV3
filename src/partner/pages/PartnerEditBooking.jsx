@@ -386,51 +386,7 @@ function PartnerEditBooking() {
                   </tr>
                 ))}
 
-                {/* Add New Service Row */}
-                <tr>
-                  <td className="py-5 px-2">
-                    <select 
-                      value={selectedServiceGroup}
-                      onChange={(e) => setSelectedServiceGroup(e.target.value)}
-                      className="w-full border border-gray-300 rounded px-2 py-2 text-[12px] text-gray-500 focus:outline-none focus:border-[#00acc1] bg-white"
-                    >
-                      <option value="">-- Please Select Service --</option>
-                      {serviceGroups.map(sg => (
-                        <option key={sg.service_group_id} value={sg.service_group_id}>{sg.service_group_name}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-5 px-2">
-                    <select 
-                      value={selectedService}
-                      onChange={handleServiceChange}
-                      className="w-full border border-gray-300 rounded px-2 py-2 text-[12px] text-gray-500 focus:outline-none focus:border-[#00acc1] bg-white"
-                    >
-                      <option value="">-- Please Select Body Part --</option>
-                      {allServices
-                        .filter(svc => !selectedServiceGroup || String(svc.service_group) === String(selectedServiceGroup))
-                        .map(svc => (
-                          <option key={svc.service_id} value={svc.service_id}>{svc.service_name}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-5 px-2">
-                    <input type="text" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] focus:outline-none focus:border-[#00acc1] bg-white text-center" />
-                  </td>
-                  <td className="py-5 px-2">
-                    <input type="text" value={newNetPayable} onChange={(e) => setNewNetPayable(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] focus:outline-none focus:border-[#00acc1] bg-white text-center" />
-                  </td>
-                  <td className="py-5 px-2 text-center">
-                    <div className="flex justify-start pl-2">
-                      <button 
-                        onClick={handleAddService}
-                        className="bg-[#00acc1] hover:bg-[#0097a7] text-white text-[11px] font-bold py-1.5 px-4 rounded transition-colors shadow-sm cursor-pointer"
-                      >
-                        ADD
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+
               </tbody>
             </table>
           </div>
