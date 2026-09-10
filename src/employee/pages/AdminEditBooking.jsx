@@ -89,7 +89,7 @@ function AdminEditBooking() {
   useEffect(() => {
     const fetchTechnicians = async () => {
       try {
-        const response = await axiosInstance.get(ENDPOINTS.USERS);
+        const response = await axiosInstance.get(ENDPOINTS.USERS, { params: { page_size: 10000 } });
         const allUsers = response.data.results || response.data.result || (Array.isArray(response.data) ? response.data : []);
         const techs = allUsers.filter(user => user.user_type_name === 'Technician');
         setApiTechnicians(techs);
