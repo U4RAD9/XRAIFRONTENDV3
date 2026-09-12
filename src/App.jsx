@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import axios from 'axios';
 import Layout from './components/Layout';
 import AdminLayout from './employee/components/AdminLayout';
@@ -52,59 +53,61 @@ axios.interceptors.request.use((config) => {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="pricing" element={<Pricing />} />
-          <Route path="corporate" element={<Corporate />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact-us" element={<ContactUs />} />
-          <Route path="services" element={<Services />} />
-          <Route path="partners" element={<Partners />} />
-          <Route path="terms-and-conditions" element={<TermsAndConditions />} />
-          <Route path="privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Registration />} />
-        </Route>
+    <HelmetProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="pricing" element={<Pricing />} />
+            <Route path="corporate" element={<Corporate />} />
+            <Route path="about" element={<About />} />
+            <Route path="contact-us" element={<ContactUs />} />
+            <Route path="services" element={<Services />} />
+            <Route path="partners" element={<Partners />} />
+            <Route path="terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Registration />} />
+          </Route>
 
-        <Route path="/patient" element={<PatientLayout />}>
-          <Route path="dashboard" element={<PatientDashboard />} />
-          <Route path="book-slot" element={<SlotBooking />} />
-        </Route>
+          <Route path="/patient" element={<PatientLayout />}>
+            <Route path="dashboard" element={<PatientDashboard />} />
+            <Route path="book-slot" element={<SlotBooking />} />
+          </Route>
 
-        <Route path="/partner" element={<PartnerLayout />}>
-          <Route path="dashboard" element={<PartnerDashboard />} />
-          <Route path="booking" element={<PartnerBooking />} />
-          <Route path="make-booking" element={<PartnerMakeBooking />} />
-          <Route path="bookings/edit/:id" element={<PartnerEditBooking />} />
-        </Route>
+          <Route path="/partner" element={<PartnerLayout />}>
+            <Route path="dashboard" element={<PartnerDashboard />} />
+            <Route path="booking" element={<PartnerBooking />} />
+            <Route path="make-booking" element={<PartnerMakeBooking />} />
+            <Route path="bookings/edit/:id" element={<PartnerEditBooking />} />
+          </Route>
 
-        <Route path="/technician" element={<TechnicianLayout />}>
-          <Route path="dashboard" element={<TechnicianDashboard />} />
-          <Route path="edit-booking/:id" element={<TechnicianEditBooking />} />
-        </Route>
+          <Route path="/technician" element={<TechnicianLayout />}>
+            <Route path="dashboard" element={<TechnicianDashboard />} />
+            <Route path="edit-booking/:id" element={<TechnicianEditBooking />} />
+          </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="locations" element={<AdminLocations />} />
-          <Route path="service-groups" element={<AdminServiceGroups />} />
-          <Route path="services" element={<AdminServices />} />
-          <Route path="price-rate-master" element={<AdminPriceRateMaster />} />
-          <Route path="offers-master" element={<AdminOffersMaster />} />
-          <Route path="slot-master" element={<AdminSlotMaster />} />
-          <Route path="bookings" element={<AdminBookings />} />
-          <Route path="bookings/edit/:id" element={<AdminEditBooking />} />
-          <Route path="technician-summary-report" element={<AdminTechnicianSummaryReport />} />
-          <Route path="make-booking" element={<AdminMakeBooking />} />
-          <Route path="booking-report" element={<AdminBookingReport />} />
-          <Route path="registration-types" element={<AdminRegistrationTypes />} />
-          <Route path="service-providers" element={<AdminServiceProviders />} />
-          <Route path="manage-users" element={<AdminManageUsers />} />
-          <Route path="patients" element={<AdminPatients />} />
-        </Route>
-      </Routes>
-    </Router>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="locations" element={<AdminLocations />} />
+            <Route path="service-groups" element={<AdminServiceGroups />} />
+            <Route path="services" element={<AdminServices />} />
+            <Route path="price-rate-master" element={<AdminPriceRateMaster />} />
+            <Route path="offers-master" element={<AdminOffersMaster />} />
+            <Route path="slot-master" element={<AdminSlotMaster />} />
+            <Route path="bookings" element={<AdminBookings />} />
+            <Route path="bookings/edit/:id" element={<AdminEditBooking />} />
+            <Route path="technician-summary-report" element={<AdminTechnicianSummaryReport />} />
+            <Route path="make-booking" element={<AdminMakeBooking />} />
+            <Route path="booking-report" element={<AdminBookingReport />} />
+            <Route path="registration-types" element={<AdminRegistrationTypes />} />
+            <Route path="service-providers" element={<AdminServiceProviders />} />
+            <Route path="manage-users" element={<AdminManageUsers />} />
+            <Route path="patients" element={<AdminPatients />} />
+          </Route>
+        </Routes>
+      </Router>
+    </HelmetProvider>
   );
 }
 
