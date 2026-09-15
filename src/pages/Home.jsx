@@ -361,14 +361,14 @@ function Home() {
     <div className="bg-[#f8f9fa] w-full font-sans">
       {/* SEO tags — title, meta description, keywords, JSON-LD structured data */}
       <Helmet>
-        <title>X-Ray at Home & ECG at Home in Kolkata, Delhi, Gurgaon, Bangalore, Hyderabad | XRAi Digital</title>
+        <title>X-Ray & ECG at Home / In-Clinic | Kolkata, Delhi, NCR, Bangalore & Hyderabad | XRAi Digital</title>
         <meta
           name="description"
-          content="Book X-Ray at Home or ECG at Home in Kolkata, Delhi, Gurgaon, Bangalore and Hyderabad with XRAi Digital. Hospital-grade equipment, certified technicians, reports within hours."
+          content={`Book top-rated X-Ray and ECG services at home or in-clinic across ${SERVICE_CITIES.join(', ')}. XRAi Digital offers quick, hospital-grade diagnostics.`}
         />
         <meta
           name="keywords"
-          content="X-Ray at Home in Kolkata, X-Ray at Home in Delhi, X-Ray at Home in Gurgaon, X-Ray at Home in Bangalore, X-Ray at Home in Hyderabad, ECG at Home in Kolkata, ECG at Home in Delhi, ECG at Home in Gurgaon, ECG at Home in Bangalore, ECG at Home in Hyderabad"
+          content={`diagnostic at home, home diagnostics, in-clinic diagnostics, ${SERVICE_CITIES.map(city => `x-ray at home in ${city}, ecg at home in ${city}, x-ray clinic in ${city}, ecg clinic in ${city}`).join(', ')}`}
         />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -389,6 +389,14 @@ function Home() {
               {
                 "@type": "Offer",
                 "itemOffered": { "@type": "MedicalProcedure", "name": "ECG at Home" },
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": { "@type": "MedicalProcedure", "name": "In-Clinic X-Ray" },
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": { "@type": "MedicalProcedure", "name": "In-Clinic ECG" },
               },
             ],
           })}

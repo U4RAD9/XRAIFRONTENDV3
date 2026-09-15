@@ -318,6 +318,30 @@ function AdminDashboard() {
                             ))}
                           </tbody>
                         </table>
+                        <div className="mt-4 flex flex-col items-end text-sm">
+                           <div className="flex justify-between w-48 text-gray-600 mb-1">
+                             <span>Subtotal:</span>
+                             <span className="font-semibold">₹{parseFloat(selectedBookingDetails.gross_amount || selectedBookingDetails.services.reduce((acc, svc) => acc + (parseFloat(svc.netPayable) || 0), 0)).toFixed(2)}</span>
+                           </div>
+                           
+                           {/* Calculate discount if gross_amount is greater than amount */}
+                           {(selectedBookingDetails.gross_amount && selectedBookingDetails.amount && parseFloat(selectedBookingDetails.gross_amount) > parseFloat(selectedBookingDetails.amount)) ? (
+                             <div className="flex justify-between w-48 text-green-600 mb-1">
+                               <span>Discount {selectedBookingDetails.offer_name || selectedBookingDetails.coupon_code ? `(${selectedBookingDetails.offer_name || selectedBookingDetails.coupon_code})` : ''}:</span>
+                               <span className="font-semibold">-₹{(parseFloat(selectedBookingDetails.gross_amount) - parseFloat(selectedBookingDetails.amount)).toFixed(2)}</span>
+                             </div>
+                           ) : ((selectedBookingDetails.coupon_code || selectedBookingDetails.discount_amount || selectedBookingDetails.discount > 0) && (
+                             <div className="flex justify-between w-48 text-green-600 mb-1">
+                               <span>Discount {selectedBookingDetails.coupon_code ? `(${selectedBookingDetails.coupon_code})` : ''}:</span>
+                               <span className="font-semibold">-₹{parseFloat(selectedBookingDetails.discount_amount || selectedBookingDetails.discount || 0).toFixed(2)}</span>
+                             </div>
+                           ))}
+
+                           <div className="flex justify-between w-48 text-gray-800 font-bold border-t border-gray-200 pt-2 mt-1">
+                             <span>Final Price:</span>
+                             <span className="text-[#00acc1] text-lg">₹{parseFloat(selectedBookingDetails.amount || selectedBookingDetails.gross_amount || selectedBookingDetails.services.reduce((acc, svc) => acc + (parseFloat(svc.netPayable) || 0), 0)).toFixed(2)}</span>
+                           </div>
+                        </div>
                       </div>
                     ) : (
                       <p className="text-gray-500 italic">No services listed.</p>
