@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
 import Pagination from '../../components/Pagination';
+import TechnicianBookingCard from '../components/TechnicianBookingCard';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
 function TechnicianDashboard() {
+  const [viewMode, setViewMode] = useState('table');
   const navigate = useNavigate();
   const [globalSearch, setGlobalSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -167,49 +169,69 @@ function TechnicianDashboard() {
 
   return (
     <div className='w-full'>
-      {/* Search Bar */}
-      <div className="bg-gray-50  mb-6 rounded-xl flex justify-between items-center">
+      {/* Search Bar & Stats */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-gray-50 rounded-xl p-2 md:p-0">
         <div className="relative w-full max-w-md">
-          <input 
-            type="text" 
-            placeholder="Search cases..." 
+          <input
+            type="text"
+            placeholder="Search cases..."
             value={globalSearch}
             onChange={handleGlobalSearch}
-            className="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00acc1] bg-white shadow-sm"
+            className="w-full pl-10 pr-4 py-3 md:py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00acc1] bg-white shadow-sm"
           />
           <i className="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 py-1 px-4 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-500 text-xl">
-              <i className="fas fa-clipboard-list"></i>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm font-medium">Pending Cases</p>
-              <h2 className="text-xl font-bold text-gray-800">{stats.pending}</h2>
-            </div>
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-4 md:gap-6 justify-between md:justify-end">
+          {/* View Toggle (Hidden on Mobile) */}
+          <div className="hidden md:flex bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm h-10">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`cursor-pointer px-4 flex items-center ${viewMode === 'table' ? 'bg-gray-100 text-[#00acc1]' : 'text-gray-500 hover:bg-gray-50'}`}
+              title="Table View"
+            >
+              <i className="fas fa-list"></i>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`cursor-pointer px-4 flex items-center border-l border-gray-300 ${viewMode === 'grid' ? 'bg-gray-100 text-[#00acc1]' : 'text-gray-500 hover:bg-gray-50'}`}
+              title="Grid View"
+            >
+              <i className="fas fa-th-large"></i>
+            </button>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 py-1 px-4 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-500 text-xl">
-              <i className="fas fa-check-circle"></i>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 py-1 px-4 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-500 text-xl">
+                <i className="fas fa-clipboard-list"></i>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Pending Cases</p>
+                <h2 className="text-xl font-bold text-gray-800">{stats.pending}</h2>
+              </div>
             </div>
-            <div>
-              <p className="text-gray-500 text-sm font-medium">Completed</p>
-              <h2 className="text-xl font-bold text-gray-800">{stats.completed}</h2>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 py-1 px-4 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-500 text-xl">
+                <i className="fas fa-check-circle"></i>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Completed</p>
+                <h2 className="text-xl font-bold text-gray-800">{stats.completed}</h2>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white shadow-md rounded-2xl border border-gray-100 overflow-hidden">
+      {/* TABLE VIEW (Visible on Desktop if viewMode === 'table') */}
+      <div className={`bg-white shadow-md rounded-2xl border border-gray-100 overflow-hidden hidden ${viewMode === 'table' ? 'md:block' : ''}`}>
         {/* <div className="px-6 py-5 border-b border-gray-100 bg-white">
           <h3 className="text-xl font-bold text-[#233560]">Allotted Cases</h3>
         </div> */}
-        
+
         <div className="overflow-x-auto custom-scrollbar">
           <table className="min-w-full bg-white whitespace-nowrap text-sm">
             <thead className="bg-gray-50 text-gray-600 text-xs font-bold uppercase tracking-wider">
@@ -239,9 +261,8 @@ function TechnicianDashboard() {
                     <td className="py-4 px-6 text-gray-600">{booking.slot}</td>
                     <td className="py-4 px-6">{booking.paymentMethod}</td>
                     <td className="py-4 px-6">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        booking.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${booking.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
                         {booking.paymentStatus}
                       </span>
                     </td>
@@ -253,7 +274,7 @@ function TechnicianDashboard() {
                           completed
                         </span>
                       ) : (
-                        <button 
+                        <button
                           onClick={() => handleUpdateTestStatus(booking.id)}
                           className="px-3 py-1 rounded-xl text-xs font-bold bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors flex flex-col items-center justify-center leading-tight mx-auto"
                         >
@@ -279,7 +300,7 @@ function TechnicianDashboard() {
                       </button>
                     </td>
                     <td className="py-4 px-6">
-                      <button 
+                      <button
                         onClick={() => navigate(`/technician/edit-booking/${booking.id}`)}
                         className="text-blue-600 hover:text-blue-800 font-bold text-sm transition-colors uppercase tracking-wide cursor-pointer"
                       >
@@ -288,7 +309,7 @@ function TechnicianDashboard() {
                     </td>
                     <td className="py-4 px-6">
                       {booking.paymentStatus !== 'Paid' ? (
-                        <button 
+                        <button
                           onClick={() => handleUpdatePaymentStatus(booking.id)}
                           className="bg-[#00acc1] hover:bg-[#0097a7] text-white px-4 py-2 rounded font-bold text-xs transition-colors shadow-sm w-full text-center"
                         >
@@ -304,35 +325,64 @@ function TechnicianDashboard() {
             </tbody>
           </table>
         </div>
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={totalPages} 
-          onPageChange={(page) => setCurrentPage(page)} 
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       </div>
 
+      {/* GRID VIEW (Visible on Mobile Always, Visible on Desktop if viewMode === 'grid') */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ${viewMode === 'table' ? 'md:hidden' : ''}`}>
+        {loading ? (
+          <div className="col-span-full py-8 text-center text-[#233560] font-bold text-xl">Loading...</div>
+        ) : filteredBookings.length === 0 ? (
+          <div className="col-span-full py-8 text-center text-gray-500 font-medium">No cases assigned to you.</div>
+        ) : (
+          filteredBookings.map((booking) => (
+            <TechnicianBookingCard
+              key={booking.id}
+              booking={booking}
+              onUpdateTestStatus={handleUpdateTestStatus}
+              onViewFiles={handleViewFiles}
+              onUpdatePaymentStatus={handleUpdatePaymentStatus}
+            />
+          ))
+        )}
+      </div>
+
+      {viewMode === 'grid' && totalPages > 1 && (
+        <div className="mt-6 shadow-md rounded-xl overflow-hidden border border-gray-100 md:hidden block">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </div>
+      )}
+
       {/* Files Modal */}
       {showFilesModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" onClick={() => setShowFilesModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden max-h-[90vh] flex flex-col my-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-2 md:p-0" onClick={() => setShowFilesModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden max-h-[90vh] md:max-h-[90vh] h-[95vh] md:h-auto flex flex-col my-4" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 flex flex-col overflow-y-auto custom-scrollbar">
               <h2 className="text-2xl font-bold text-[#233560] mb-4">Files</h2>
-              
+
               {/* Prescription Section */}
               <div className="mb-6">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                   {selectedBookingPrescription ? (
-                    <div className="flex items-center gap-4">
-                      <a href={`${mediaBaseURL}/${selectedBookingPrescription}`} target="_blank" rel="noreferrer" className="bg-[#ffca28] hover:bg-[#ffc107] text-white font-bold py-2 px-6 rounded uppercase shadow-sm inline-block">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+                      <a href={`${mediaBaseURL}/${selectedBookingPrescription}`} target="_blank" rel="noreferrer" className="w-full md:w-auto text-center bg-[#ffca28] hover:bg-[#ffc107] text-white font-bold py-2 px-6 rounded uppercase shadow-sm inline-block">
                         View Prescription
                       </a>
-                      <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-4 py-2 rounded-md hover:bg-cyan-50 font-bold text-sm uppercase">
+                      <label className="w-full md:w-auto text-center cursor-pointer border border-[#00acc1] text-[#00acc1] px-4 py-2 rounded-md hover:bg-cyan-50 font-bold text-sm uppercase">
                         Change Prescription
                         <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Prescription', selectedBookingForFiles.id)} />
                       </label>
                     </div>
                   ) : (
-                    <label className="cursor-pointer bg-[#00acc1] text-white px-6 py-2 rounded-md hover:bg-[#0097a7] font-bold uppercase shadow-sm">
+                    <label className="w-full md:w-auto text-center cursor-pointer bg-[#00acc1] text-white px-6 py-2 rounded-md hover:bg-[#0097a7] font-bold uppercase shadow-sm">
                       Upload Prescription
                       <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Prescription', selectedBookingForFiles.id)} />
                     </label>
@@ -345,27 +395,27 @@ function TechnicianDashboard() {
                 <h3 className="text-xl font-semibold text-[#233560] mb-2">Service Files</h3>
                 <div className="border border-gray-200 rounded min-h-[192px] w-full bg-gray-50 flex flex-col gap-4 p-4 overflow-y-auto">
                   {selectedBookingServices.length > 0 ? selectedBookingServices.map(svc => (
-                     <div key={svc.id} className="w-full">
-                       <div className="flex justify-between items-center mb-2">
-                         <span className="font-bold text-[#233560]">{svc.service}</span>
-                         <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-3 py-1 rounded hover:bg-cyan-50 font-bold text-xs uppercase">
-                           {svc.serviceFiles && svc.serviceFiles.length > 0 ? 'Update Service File' : 'Upload Service File'}
-                           <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Service', svc.id)} />
-                         </label>
-                       </div>
-                       {svc.serviceFiles && svc.serviceFiles.length > 0 ? (
-                         <div className="flex flex-col gap-4">
-                           {svc.serviceFiles.map((file, idx) => (
-                             <div key={`svc-${svc.id}-${idx}`} className="h-[400px] border rounded overflow-hidden relative">
-                                <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
-                                <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Service File ${svc.bodyPart || svc.service} ${idx}`} />
-                             </div>
-                           ))}
-                         </div>
-                       ) : (
-                         <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No service file for {svc.service}</div>
-                       )}
-                     </div>
+                    <div key={svc.id} className="w-full">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-[#233560]">{svc.service}</span>
+                        <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-3 py-1 rounded hover:bg-cyan-50 font-bold text-xs uppercase">
+                          {svc.serviceFiles && svc.serviceFiles.length > 0 ? 'Update Service File' : 'Upload Service File'}
+                          <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Service', svc.id)} />
+                        </label>
+                      </div>
+                      {svc.serviceFiles && svc.serviceFiles.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                          {svc.serviceFiles.map((file, idx) => (
+                            <div key={`svc-${svc.id}-${idx}`} className="h-[400px] border rounded overflow-hidden relative">
+                              <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
+                              <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Service File ${svc.bodyPart || svc.service} ${idx}`} />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No service file for {svc.service}</div>
+                      )}
+                    </div>
                   )) : <div className="text-gray-400 font-medium text-sm flex items-center justify-center h-full">Loading services...</div>}
                 </div>
               </div>
@@ -375,34 +425,34 @@ function TechnicianDashboard() {
                 <h3 className="text-xl font-semibold text-[#233560] mb-2">Report Files</h3>
                 <div className="border border-gray-200 rounded min-h-[192px] w-full bg-gray-50 flex flex-col gap-4 p-4 overflow-y-auto">
                   {selectedBookingServices.length > 0 ? selectedBookingServices.map(svc => (
-                     <div key={svc.id} className="w-full">
-                       <div className="flex justify-between items-center mb-2">
-                         <span className="font-bold text-[#233560]">{svc.service}</span>
-                         <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-3 py-1 rounded hover:bg-cyan-50 font-bold text-xs uppercase">
-                           {svc.reportFiles && svc.reportFiles.length > 0 ? 'Update Report File' : 'Upload Report File'}
-                           <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Report', svc.id)} />
-                         </label>
-                       </div>
-                       {svc.reportFiles && svc.reportFiles.length > 0 ? (
-                         <div className="flex flex-col gap-4">
-                           {svc.reportFiles.map((file, idx) => (
-                             <div key={`rep-${svc.id}-${idx}`} className="h-[400px] border rounded overflow-hidden relative">
-                                <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
-                                <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Report File ${svc.bodyPart || svc.service} ${idx}`} />
-                             </div>
-                           ))}
-                         </div>
-                       ) : (
-                         <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No report file for {svc.service}</div>
-                       )}
-                     </div>
+                    <div key={svc.id} className="w-full">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-[#233560]">{svc.service}</span>
+                        <label className="cursor-pointer border border-[#00acc1] text-[#00acc1] px-3 py-1 rounded hover:bg-cyan-50 font-bold text-xs uppercase">
+                          {svc.reportFiles && svc.reportFiles.length > 0 ? 'Update Report File' : 'Upload Report File'}
+                          <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'Report', svc.id)} />
+                        </label>
+                      </div>
+                      {svc.reportFiles && svc.reportFiles.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                          {svc.reportFiles.map((file, idx) => (
+                            <div key={`rep-${svc.id}-${idx}`} className="h-[400px] border rounded overflow-hidden relative">
+                              <div className="absolute top-0 left-0 bg-[#233560] text-white text-xs px-2 py-1 font-bold z-10 rounded-br">{svc.bodyPart || svc.service} {idx > 0 ? `(${idx + 1})` : ''}</div>
+                              <iframe src={`${mediaBaseURL}/${encodeURIComponent(file)}?t=${new Date().getTime()}`} className="w-full h-full border-none" title={`Report File ${svc.bodyPart || svc.service} ${idx}`} />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-gray-400 font-medium text-sm p-4 border rounded border-dashed text-center">No report file for {svc.service}</div>
+                      )}
+                    </div>
                   )) : <div className="text-gray-400 font-medium text-sm flex items-center justify-center h-full">Loading services...</div>}
                 </div>
               </div>
-              
+
               <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-                <button 
-                  onClick={() => setShowFilesModal(false)} 
+                <button
+                  onClick={() => setShowFilesModal(false)}
                   className="px-6 py-2 border border-gray-300 text-[#233560] font-bold rounded hover:bg-gray-50 transition-colors uppercase shadow-sm"
                 >
                   Close

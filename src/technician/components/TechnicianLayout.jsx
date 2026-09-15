@@ -10,7 +10,7 @@ function TechnicianLayout() {
             <h1 className="text-xl font-bold text-[#233560]">
               Welcome {sessionStorage.getItem('FullName') || sessionStorage.getItem('UserName')}
             </h1>
-            <button 
+            <button
               onClick={() => {
                 sessionStorage.clear();
                 window.location.href = '/login';
@@ -22,7 +22,7 @@ function TechnicianLayout() {
           </div>
         </div>
       </header>
-      <main className="flex-1 py-8 px-8 sm:px-6 lg:px-8">
+      <main className="flex-1 py-4 px-4 sm:py-8 sm:px-6 lg:px-8">
         <Outlet />
       </main>
     </div>
