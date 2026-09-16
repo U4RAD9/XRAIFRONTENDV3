@@ -49,6 +49,7 @@ function ChannelPartnerRegistration() {
 
   const [family, setFamily] = useState({
     primary_mobile: '',
+    loan_number: '',
     address_line_1: '',
     address_line_2: '',
     village: '',
@@ -194,6 +195,7 @@ function ChannelPartnerRegistration() {
       const familyPayload = {
         package: Number(selectedPackage.id),
         primary_mobile: family.primary_mobile,
+        loan_number: family.loan_number,
         address_line_1: family.address_line_1,
         address_line_2: family.address_line_2,
         village: family.village,
@@ -287,6 +289,10 @@ function ChannelPartnerRegistration() {
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i className="fas fa-home text-[#11A8A4]"></i> Family Address</h3>
           <p className="text-sm text-gray-500 mt-1">These fields create the family record. Backend will generate <code>family_id</code>.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Loan Number</label>
+              <input name="loan_number" value={family.loan_number} onChange={handleFamilyChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="LN-123456" />
+            </div>
             {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Primary Mobile <span className="text-red-500">*</span></label>
               <input name="primary_mobile" value={family.primary_mobile} onChange={handleFamilyChange} required className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="9876543210" />
