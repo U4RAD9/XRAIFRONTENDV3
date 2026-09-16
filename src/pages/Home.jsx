@@ -352,7 +352,7 @@ import 'swiper/css/pagination';
 
 // Cities served — add/remove here and both the meta keywords and the
 // visible "Available In" section below update automatically.
-const SERVICE_CITIES = ["Kolkata", "Delhi", "Gurgaon", "Bangalore", "Hyderabad"];
+const SERVICE_CITIES = ["Kolkata", "Hyderabad", "Bangalore", "Bengaluru", "Gurugram", "Gurgaon", "Delhi", "Delhi NCR"];
 
 function Home() {
   const [activeStep, setActiveStep] = useState(1);
@@ -362,6 +362,7 @@ function Home() {
       {/* SEO tags — title, meta description, keywords, JSON-LD structured data */}
       <Helmet>
         <title>X-Ray & ECG at Home / In-Clinic | Kolkata, Delhi, NCR, Bangalore & Hyderabad | XRAi Digital</title>
+        <link rel="canonical" href="https://xraidigital.com/" />
         <meta
           name="description"
           content={`Book top-rated X-Ray and ECG services at home or in-clinic across ${SERVICE_CITIES.join(', ')}. XRAi Digital offers quick, hospital-grade diagnostics.`}
@@ -370,6 +371,12 @@ function Home() {
           name="keywords"
           content={`diagnostic at home, home diagnostics, in-clinic diagnostics, ${SERVICE_CITIES.map(city => `x-ray at home in ${city}, ecg at home in ${city}, x-ray clinic in ${city}, ecg clinic in ${city}`).join(', ')}`}
         />
+        <meta property="og:title" content="X-Ray & ECG at Home / In-Clinic | XRAi Digital" />
+        <meta property="og:description" content={`Book top-rated X-Ray and ECG services at home or in-clinic across ${SERVICE_CITIES.join(', ')}. Quick, hospital-grade diagnostics.`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://xraidigital.com/" />
+        <meta property="og:image" content="https://xraidigital.com/images/logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
