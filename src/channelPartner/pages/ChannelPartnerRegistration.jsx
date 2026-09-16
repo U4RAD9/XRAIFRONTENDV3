@@ -287,7 +287,7 @@ function ChannelPartnerRegistration() {
         {/* Family Address */}
         <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i className="fas fa-home text-[#11A8A4]"></i> Family Address</h3>
-          <p className="text-sm text-gray-500 mt-1">These fields create the family record. Backend will generate <code>family_id</code>.</p>
+          <p className="text-sm text-gray-500 mt-1">These fields create the family record.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Loan Number</label>
@@ -334,7 +334,7 @@ function ChannelPartnerRegistration() {
 
         {/* Family Head */}
         <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i className="fas fa-user-crown text-[#11A8A4]"></i> Family Head <span className="text-xs font-normal text-gray-500">(relationship = HEAD, is_primary_contact = true)</span></h3>
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i className="fas fa-user-crown text-[#11A8A4]"></i> Family Head</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
@@ -382,12 +382,12 @@ function ChannelPartnerRegistration() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
               <input type="email" name="email" value={head.email} onChange={handleHeadChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="ramesh@example.com" />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Marital Status</label>
               <select name="marital_status" value={head.marital_status} onChange={handleHeadChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 bg-white focus:outline-none focus:border-[#11A8A4]">
                 {MARITAL_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-            </div>
+            </div> */}
             {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Education</label>
               <input name="education" value={head.education} onChange={handleHeadChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="Graduate" />
@@ -422,7 +422,7 @@ function ChannelPartnerRegistration() {
               <i className="fas fa-plus"></i> Add Member
             </button>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Add spouse, son, daughter, etc. Each will be posted as <code>multipart/form-data</code> to <code>/members/</code> with <code>family = &lt;id&gt;</code>.</p>
+          <p className="text-sm text-gray-500 mt-1">Add spouse, son, daughter, etc.</p>
 
           {members.length === 0 ? (
             <div className="mt-6 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400">
@@ -488,12 +488,12 @@ function ChannelPartnerRegistration() {
                       <input type="file" name="photo" accept="image/*" onChange={(e) => handleMemberChange(idx, e)} className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white text-sm" />
                       {m.photoPreview && <img src={m.photoPreview} alt="preview" className="mt-2 h-14 w-14 rounded-lg object-cover border" />}
                     </div>
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Marital Status</label>
                       <select name="marital_status" value={m.marital_status} onChange={(e) => handleMemberChange(idx, e)} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 bg-white">
                         {MARITAL_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
-                    </div>
+                    </div> */}
                     {/* <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Education</label>
                       <input name="education" value={m.education} onChange={(e) => handleMemberChange(idx, e)} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 bg-white" />
