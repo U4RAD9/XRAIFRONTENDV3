@@ -18,6 +18,15 @@ export default defineConfig({
       'admin.xraidigital.com',
       'xraidigital.com',
     ],
+
+    proxy: {
+      '/cbackend': {
+        target: 'https://cbackend.xraidigital.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/cbackend/, ''),
+      },
+    },
   },
 })
 

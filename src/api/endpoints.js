@@ -1,5 +1,6 @@
 export const ENDPOINTS = {
   // Auth
+  CAMPMANAGER_LOGIN: 'https://cbackend.xraidigital.com/api/campmanager/login/',
   LOGIN: '/auth/login',
   FORGET_MPIN: '/auth/forget_mpin',
   VERIFY_OTP: '/auth/verify_otp',
@@ -23,6 +24,11 @@ export const ENDPOINTS = {
   UPDATE_BOOKING_STATUS: '/booking/update_booking_status',
   UPDATE_PAYMENT_STATUS: '/booking/update_payment_status',
   
+  // Rural Health (Channel Partner)
+  RURAL_PACKAGES: 'https://cbackend.xraidigital.com/api/packages/',
+  RURAL_FAMILIES: 'https://cbackend.xraidigital.com/api/rural-health/families/',
+  RURAL_MEMBERS: 'https://cbackend.xraidigital.com/api/rural-health/members/',
+
   // Masters
   LOCATIONS: '/locations/',
   SERVICE_GROUPS: '/service-groups/',

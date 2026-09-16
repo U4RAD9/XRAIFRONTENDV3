@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
 import { ENDPOINTS } from '../api/endpoints';
 
@@ -34,6 +35,48 @@ function Login() {
     }
 
     setLoading(true);
+
+    // 1) Try CampManager login first
+    try {
+      const campRes = await axios.post(ENDPOINTS.CAMPMANAGER_LOGIN, {
+        email: formData.MobileNumber,
+        password: formData.MPIN,
+      });
+
+      const campData = campRes.data;
+
+      if (campData && campData.success === true && campData.token) {
+        sessionStorage.setItem('Token', campData.token);
+        sessionStorage.setItem('UserName', campData.email || formData.MobileNumber);
+        sessionStorage.setItem('FullName', campData.name || '');
+        sessionStorage.setItem('UserID', String(campData.user_id || ''));
+        sessionStorage.setItem('ClientID', campData.client_id || '');
+        sessionStorage.setItem('Email', campData.email || '');
+        sessionStorage.setItem('ContactNumber', campData.contact_number || '');
+        sessionStorage.setItem('Groups', JSON.stringify(campData.groups || []));
+        // Keep UserType as ChannelPartner for route guard
+        sessionStorage.setItem('UserType', 'ChannelPartner');
+        // Also persist for dashboard display
+        sessionStorage.setItem('ChannelDashboard', campData.dashboard || '/channel-partner/dashboard');
+        sessionStorage.setItem('MobileNumber', campData.contact_number || campData.email || formData.MobileNumber);
+
+        const groups = campData.groups || [];
+        setLoading(false);
+        if (groups.includes('ChannelPartner')) {
+          navigate('/channel-partner/dashboard', { replace: true });
+        } else if (campData.dashboard) {
+          navigate(campData.dashboard, { replace: true });
+        } else {
+          navigate('/channel-partner/dashboard', { replace: true });
+        }
+        return;
+      }
+    } catch (campErr) {
+      // CampManager login did not succeed / not exist -> fallback to normal login
+      // console.debug('CampManager login failed, falling back', campErr);
+    }
+
+    // 2) Fallback: existing normal login flow
     try {
       const res = await axiosInstance.post(ENDPOINTS.LOGIN, formData);
       if (res.data.Success === true) {
@@ -56,10 +99,11 @@ function Login() {
           navigate('/patient/dashboard', { replace: true });
         }
       } else {
-        alert(res.data.message);
+        alert(res.data.message || res.data.Message || "Login failed. Please check credentials.");
       }
     } catch (err) {
-      alert("Error logging in");
+      const msg = err?.response?.data?.message || err?.response?.data?.Message || "Error logging in";
+      alert(msg);
     } finally {
       setLoading(false);
     }

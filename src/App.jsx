@@ -41,12 +41,23 @@ import AdminRegistrationTypes from './employee/pages/AdminRegistrationTypes';
 import AdminServiceProviders from './employee/pages/AdminServiceProviders';
 import AdminManageUsers from './employee/pages/AdminManageUsers';
 import AdminPatients from './employee/pages/AdminPatients';
+import ChannelPartnerLayout from './channelPartner/components/ChannelPartnerLayout';
+import ChannelPartnerDashboard from './channelPartner/pages/ChannelPartnerDashboard';
+import ChannelPartnerPackages from './channelPartner/pages/ChannelPartnerPackages';
+import ChannelPartnerRegistration from './channelPartner/pages/ChannelPartnerRegistration';
 
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('Token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    // Preserve explicit Token auth for cbackend/rural-health APIs
+    const hasAuth = config.headers.Authorization || config.headers.authorization;
+    if (hasAuth && (String(hasAuth).startsWith('Token ') || String(hasAuth).startsWith('Bearer '))) {
+      return config;
+    }
+    // For rural-health/campmanager domains use Token, otherwise Bearer
+    const isRural = config.url && (config.url.includes('cbackend.xraidigital.com') || config.url.includes('rural-health') || config.url.includes('/api/campmanager'));
+    config.headers.Authorization = isRural ? `Token ${token}` : `Bearer ${token}`;
   }
   return config;
 });
@@ -104,6 +115,19 @@ function App() {
             <Route path="service-providers" element={<AdminServiceProviders />} />
             <Route path="manage-users" element={<AdminManageUsers />} />
             <Route path="patients" element={<AdminPatients />} />
+          </Route>
+
+          <Route path="/channel-partner" element={<ChannelPartnerLayout />}>
+            <Route path="dashboard" element={<ChannelPartnerDashboard />} />
+            <Route path="registration" element={<ChannelPartnerPackages />} />
+            <Route path="registration-form" element={<ChannelPartnerRegistration />} />
+          </Route>
+
+          {/* Alias for backend dashboard path "/channel-partner-dashboard" */}
+          <Route path="/channel-partner-dashboard" element={<ChannelPartnerLayout />}>
+            <Route index element={<ChannelPartnerDashboard />} />
+            <Route path="registration" element={<ChannelPartnerPackages />} />
+            <Route path="registration-form" element={<ChannelPartnerRegistration />} />
           </Route>
         </Routes>
       </Router>
