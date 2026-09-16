@@ -11,11 +11,21 @@ const RELATIONSHIPS = ['HEAD', 'SPOUSE', 'SON', 'DAUGHTER', 'FATHER', 'MOTHER', 
 const MARITAL_STATUS = ['SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED'];
 const SOCIAL_CATEGORIES = ['GENERAL', 'OBC', 'SC', 'ST', 'OTHER'];
 
+const calcAge = (dob) => {
+  if (!dob) return '';
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return '';
+  const diff = Date.now() - d.getTime();
+  const ageDt = new Date(diff);
+  return String(Math.abs(ageDt.getUTCFullYear() - 1970));
+};
+
 const emptyMember = (relationship = 'SON') => ({
   first_name: '',
   middle_name: '',
   last_name: '',
   date_of_birth: '',
+  age: '',
   gender: 'MALE',
   relationship,
   mobile: '',
@@ -98,6 +108,8 @@ function ChannelPartnerRegistration() {
       setHead({ ...head, photo: file, photoPreview: file ? URL.createObjectURL(file) : '' });
     } else if (type === 'checkbox') {
       setHeadExtra({ ...headExtra, [name]: checked });
+    } else if (name === 'date_of_birth') {
+      setHead({ ...head, date_of_birth: value, age: calcAge(value) });
     } else {
       setHead({ ...head, [name]: value });
     }
@@ -111,6 +123,8 @@ function ChannelPartnerRegistration() {
       updated[idx] = { ...updated[idx], photo: file, photoPreview: file ? URL.createObjectURL(file) : '' };
     } else if (type === 'checkbox') {
       updated[idx] = { ...updated[idx], [name]: checked };
+    } else if (name === 'date_of_birth') {
+      updated[idx] = { ...updated[idx], date_of_birth: value, age: calcAge(value) };
     } else {
       updated[idx] = { ...updated[idx], [name]: value };
     }
@@ -121,13 +135,16 @@ function ChannelPartnerRegistration() {
   const removeMember = (idx) => setMembers(members.filter((_, i) => i !== idx));
 
   const validate = () => {
-    // if (!family.primary_mobile || !family.pincode || !family.village || !family.district || !family.state) {
-    //   alert('Please fill required family fields: Primary Mobile, Village, District, State, Pincode.');
-    //   return false;
-    // }
-    if (!head.first_name || !head.last_name || !head.date_of_birth || !head.gender || !head.mobile) {
-      alert('Please fill required Family Head fields: First Name, Last Name, DOB, Gender, Mobile.');
+    if (!head.first_name || !head.last_name || !head.date_of_birth || !head.age || !head.gender || !head.mobile) {
+      alert('Please fill required Family Head fields: First Name, Last Name, DOB, Age, Gender, Mobile.');
       return false;
+    }
+    for (let i = 0; i < members.length; i++) {
+      const m = members[i];
+      if (!m.first_name || !m.last_name || !m.date_of_birth || !m.age) {
+        alert(`Please fill First Name, Last Name, DOB and Age for Member #${i + 1}.`);
+        return false;
+      }
     }
     return true;
   };
@@ -139,6 +156,7 @@ function ChannelPartnerRegistration() {
     if (memberData.middle_name) fd.append('middle_name', memberData.middle_name);
     fd.append('last_name', memberData.last_name);
     fd.append('date_of_birth', memberData.date_of_birth);
+    if (memberData.age) fd.append('age', String(memberData.age));
     fd.append('gender', memberData.gender);
     fd.append('relationship', memberData.relationship);
     if (memberData.mobile) fd.append('mobile', memberData.mobile);
@@ -329,6 +347,11 @@ function ChannelPartnerRegistration() {
               <input type="date" name="date_of_birth" value={head.date_of_birth} onChange={handleHeadChange} required className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" />
             </div>
             <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Age <span className="text-red-500">*</span></label>
+              <input type="number" name="age" value={head.age} onChange={handleHeadChange} required min="0" max="120" placeholder="Auto from DOB" className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" />
+              <p className="text-xs text-gray-400 mt-1">Auto-calculated from DOB, editable</p>
+            </div>
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Gender <span className="text-red-500">*</span></label>
               <select name="gender" value={head.gender} onChange={handleHeadChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 bg-white focus:outline-none focus:border-[#11A8A4]">
                 {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
@@ -426,6 +449,10 @@ function ChannelPartnerRegistration() {
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">DOB *</label>
                       <input type="date" name="date_of_birth" value={m.date_of_birth} onChange={(e) => handleMemberChange(idx, e)} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4] bg-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Age *</label>
+                      <input type="number" name="age" value={m.age} onChange={(e) => handleMemberChange(idx, e)} required min="0" max="120" placeholder="Auto from DOB" className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4] bg-white" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Gender *</label>
