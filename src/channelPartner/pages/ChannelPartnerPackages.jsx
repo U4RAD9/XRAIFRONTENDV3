@@ -11,6 +11,8 @@ function ChannelPartnerPackages() {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [servicesMap, setServicesMap] = useState({}); // id -> name
+  const [servicesLoading, setServicesLoading] = useState(false);
 
   const fetchPackages = async () => {
     setLoading(true);
@@ -113,8 +115,42 @@ function ChannelPartnerPackages() {
     setLoading(false);
   };
 
+  const fetchServices = async () => {
+    const token = (sessionStorage.getItem('Token') || '').trim();
+    const headers = token ? { Authorization: `Token ${token}` } : {};
+    setServicesLoading(true);
+    try {
+      // Try direct then proxy fallback (CORS)
+      let res;
+      try {
+        res = await ruralAxios.get(ENDPOINTS.CBACKEND_SERVICES, { headers });
+      } catch (e) {
+        const detail = String(e?.response?.data?.detail || '').toLowerCase();
+        if (detail.includes('authentication credentials were not provided')) {
+          const proxied = ENDPOINTS.CBACKEND_SERVICES.replace('https://cbackend.xraidigital.com', '/cbackend');
+          res = await ruralAxios.get(proxied, { headers });
+        } else {
+          // try without auth (maybe public)
+          try {
+            res = await ruralAxios.get(ENDPOINTS.CBACKEND_SERVICES);
+          } catch (_) { throw e; }
+        }
+      }
+      const list = Array.isArray(res.data) ? res.data : res.data.results || [];
+      const map = {};
+      list.forEach((s) => { map[s.id] = s.name; });
+      setServicesMap(map);
+    } catch (err) {
+      console.warn('[Services] fetch failed', err?.response?.data || err.message);
+      // keep empty map -> fallback to showing IDs
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPackages();
+    fetchServices();
   }, []);
 
   const handleSelectPackage = (pkg) => {
@@ -206,12 +242,22 @@ function ChannelPartnerPackages() {
                 </div>
 
                 <div className="mt-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Service IDs</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    Services {servicesLoading ? '(loading...)' : `(${pkg.service_ids?.length || 0})`}
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {(pkg.service_ids || []).map((sid) => (
-                      <span key={sid} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">{sid}</span>
-                    ))}
+                    {(pkg.service_ids || []).map((sid) => {
+                      const name = servicesMap[sid];
+                      return (
+                        <span key={sid} title={`ID: ${sid}`} className="bg-[#11A8A4]/10 text-[#233560] border border-[#11A8A4]/20 text-xs px-2.5 py-1 rounded-full font-semibold">
+                          {name || `#${sid}`}
+                        </span>
+                      );
+                    })}
                   </div>
+                  {pkg.service_ids?.length > 0 && Object.keys(servicesMap).length === 0 && !servicesLoading && (
+                    <p className="text-xs text-amber-600 mt-1">Names unavailable - showing IDs (services API unreachable)</p>
+                  )}
                 </div>
 
                 <button

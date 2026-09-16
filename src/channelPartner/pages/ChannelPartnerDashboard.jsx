@@ -104,52 +104,29 @@ function ChannelPartnerDashboard() {
         </div>
       </div>
 
-      {/* Details Table + Token (masked) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl shadow border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">Profile Details</h3>
-          <div className="divide-y divide-gray-100">
-            <div className="flex justify-between py-3">
-              <span className="text-gray-500 font-medium">User ID</span>
-              <span className="font-semibold text-gray-800">{profile.userId}</span>
-            </div>
-            <div className="flex justify-between py-3">
-              <span className="text-gray-500 font-medium">Client ID</span>
-              <span className="font-semibold text-gray-800">{profile.clientId}</span>
-            </div>
-            <div className="flex justify-between py-3">
-              <span className="text-gray-500 font-medium">Email</span>
-              <span className="font-semibold text-gray-800">{profile.email}</span>
-            </div>
-            <div className="flex justify-between py-3">
-              <span className="text-gray-500 font-medium">Contact Number</span>
-              <span className="font-semibold text-gray-800">{profile.contactNumber}</span>
-            </div>
-            <div className="flex justify-between py-3">
-              <span className="text-gray-500 font-medium">Groups</span>
-              <span className="font-semibold text-gray-800">{profile.groups.join(', ') || '-'}</span>
-            </div>
+      {/* Details Table */}
+      <div className="bg-white rounded-xl shadow border border-gray-100 p-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-4">Profile Details</h3>
+        <div className="divide-y divide-gray-100">
+          <div className="flex justify-between py-3">
+            <span className="text-gray-500 font-medium">User ID</span>
+            <span className="font-semibold text-gray-800">{profile.userId}</span>
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">Session</h3>
-          <p className="text-sm text-gray-600 mb-2">Your authentication token is active. Keep it secure.</p>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 break-all">
-            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Token</p>
-            <p className="text-xs font-mono text-gray-800">
-              {profile.token ? `${profile.token.slice(0, 16)}...${profile.token.slice(-8)}` : '-'}
-            </p>
+          <div className="flex justify-between py-3">
+            <span className="text-gray-500 font-medium">Client ID</span>
+            <span className="font-semibold text-gray-800">{profile.clientId}</span>
           </div>
-          <div className="mt-6 flex gap-3">
-            <div className="flex-1 bg-[#233560] text-white rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold">—</p>
-              <p className="text-xs opacity-80">Total Camps</p>
-            </div>
-            <div className="flex-1 bg-[#11A8A4] text-white rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold">—</p>
-              <p className="text-xs opacity-80">Active Clients</p>
-            </div>
+          <div className="flex justify-between py-3">
+            <span className="text-gray-500 font-medium">Email</span>
+            <span className="font-semibold text-gray-800">{profile.email}</span>
+          </div>
+          <div className="flex justify-between py-3">
+            <span className="text-gray-500 font-medium">Contact Number</span>
+            <span className="font-semibold text-gray-800">{profile.contactNumber}</span>
+          </div>
+          <div className="flex justify-between py-3">
+            <span className="text-gray-500 font-medium">Groups</span>
+            <span className="font-semibold text-gray-800">{profile.groups.join(', ') || '-'}</span>
           </div>
         </div>
       </div>

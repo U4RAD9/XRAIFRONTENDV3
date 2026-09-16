@@ -26,6 +26,7 @@ export const ENDPOINTS = {
   
   // Rural Health (Channel Partner)
   RURAL_PACKAGES: 'https://cbackend.xraidigital.com/api/packages/',
+  CBACKEND_SERVICES: 'https://cbackend.xraidigital.com/api/services/',
   RURAL_FAMILIES: 'https://cbackend.xraidigital.com/api/rural-health/families/',
   RURAL_MEMBERS: 'https://cbackend.xraidigital.com/api/rural-health/members/',
 
