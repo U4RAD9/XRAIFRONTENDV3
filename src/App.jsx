@@ -45,6 +45,7 @@ import ChannelPartnerLayout from './channelPartner/components/ChannelPartnerLayo
 import ChannelPartnerDashboard from './channelPartner/pages/ChannelPartnerDashboard';
 import ChannelPartnerPackages from './channelPartner/pages/ChannelPartnerPackages';
 import ChannelPartnerRegistration from './channelPartner/pages/ChannelPartnerRegistration';
+import ChannelPartnerFamilyList from './channelPartner/pages/ChannelPartnerFamilyList';
 
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
@@ -121,6 +122,7 @@ function App() {
             <Route path="dashboard" element={<ChannelPartnerDashboard />} />
             <Route path="registration" element={<ChannelPartnerPackages />} />
             <Route path="registration-form" element={<ChannelPartnerRegistration />} />
+            <Route path="list" element={<ChannelPartnerFamilyList />} />
           </Route>
 
           {/* Alias for backend dashboard path "/channel-partner-dashboard" */}
@@ -128,6 +130,7 @@ function App() {
             <Route index element={<ChannelPartnerDashboard />} />
             <Route path="registration" element={<ChannelPartnerPackages />} />
             <Route path="registration-form" element={<ChannelPartnerRegistration />} />
+            <Route path="list" element={<ChannelPartnerFamilyList />} />
           </Route>
         </Routes>
       </Router>

@@ -9,4 +9,9 @@ export const channelPartnerNavLinks = [
     icon: 'fas fa-clipboard-list',
     name: 'Registration'
   },
+  {
+    path: '/channel-partner/list',
+    icon: 'fas fa-list',
+    name: 'List'
+  },
 ];

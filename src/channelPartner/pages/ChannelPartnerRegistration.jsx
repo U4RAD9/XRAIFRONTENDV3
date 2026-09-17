@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ENDPOINTS } from '../../api/endpoints';
@@ -65,6 +65,8 @@ function ChannelPartnerRegistration() {
   const [members, setMembers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [excelUploading, setExcelUploading] = useState(false);
+  const excelInputRef = useRef(null);
 
   const getToken = () => (sessionStorage.getItem('Token') || '').trim();
 
@@ -134,6 +136,50 @@ function ChannelPartnerRegistration() {
 
   const addMember = () => setMembers([...members, emptyMember('SON')]);
   const removeMember = (idx) => setMembers(members.filter((_, i) => i !== idx));
+
+  const handleExcelUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!selectedPackage?.id) {
+      alert('No package selected');
+      return;
+    }
+    setExcelUploading(true);
+    try {
+      const token = getToken();
+      if (!token) { alert('No token'); return; }
+      const url = `https://cbackend.xraidigital.com/api/rural-health/packages/${selectedPackage.id}/families/upload-excel/`;
+      const proxiedUrl = url.replace('https://cbackend.xraidigital.com', '/cbackend');
+      const fd = new FormData();
+      // backend may expect field named file/excel/excel_file - append all variants for compatibility
+      fd.append('file', file);
+      fd.append('excel', file);
+      fd.append('excel_file', file);
+      let res;
+      try {
+        res = await ruralAxios.post(url, fd, {
+          headers: { Authorization: `Token ${token}` },
+        });
+      } catch (err) {
+        const detail = String(err?.response?.data?.detail || '').toLowerCase();
+        if (detail.includes('authentication credentials were not provided')) {
+          res = await ruralAxios.post(proxiedUrl, fd, {
+            headers: { Authorization: `Token ${token}` },
+          });
+        } else {
+          throw err;
+        }
+      }
+      alert('Excel uploaded successfully: ' + JSON.stringify(res.data).slice(0, 400));
+    } catch (err) {
+      const data = err?.response?.data;
+      const msg = data ? JSON.stringify(data) : err.message;
+      alert('Excel upload failed: ' + msg);
+    } finally {
+      setExcelUploading(false);
+      if (excelInputRef.current) excelInputRef.current.value = '';
+    }
+  };
 
   const validate = () => {
     if (!head.first_name || !head.last_name || !head.date_of_birth || !head.age || !head.gender || !head.mobile) {
@@ -278,9 +324,19 @@ function ChannelPartnerRegistration() {
           <h3 className="text-xl font-bold mt-1">{selectedPackage.name} <span className="font-normal text-white/80 text-sm">(ID: {selectedPackage.id})</span></h3>
           <p className="text-sm text-white/90 mt-1">₹{selectedPackage.price} • {selectedPackage.service_ids?.length} services • {selectedPackage.report_language} • {selectedPackage.start_date} → {selectedPackage.end_date}</p>
         </div>
-        <button onClick={() => navigate('/channel-partner/registration')} className="cursor-pointer bg-white text-[#233560] px-5 py-2 rounded-xl font-bold text-sm hover:bg-gray-100 shrink-0">
-          Change Package
-        </button>
+        <div className="flex gap-2 shrink-0">
+          <input ref={excelInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleExcelUpload} className="hidden" />
+          <button
+            onClick={() => excelInputRef.current?.click()}
+            disabled={excelUploading}
+            className="cursor-pointer bg-white/15 backdrop-blur border border-white/30 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-white/25 flex items-center gap-2 disabled:opacity-60"
+          >
+            {excelUploading ? <><i className="fas fa-spinner fa-spin"></i> Uploading...</> : <><i className="fas fa-file-excel"></i> Upload Excel</>}
+          </button>
+          <button onClick={() => navigate('/channel-partner/registration')} className="cursor-pointer bg-white text-[#233560] px-5 py-2 rounded-xl font-bold text-sm hover:bg-gray-100">
+            Change Package
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
