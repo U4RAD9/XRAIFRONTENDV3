@@ -229,7 +229,7 @@ function About() {
               <img src="/images/seema.jpeg" alt="Seema Singh" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-md">
-                  <a href="https://www.linkedin.com/in/seemakapur6" target="_blank" rel="noopener noreferrer" className="hover:text-[#11A8A4] transition-colors">Seema Singh</a>
+                  <a href="https://www.linkedin.com/in/seemakapur6" target="_blank" rel="noopener noreferrer" className="hover:text-[#11A8A4] transition-colors">Seema Kapur</a>
                 </h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Head Retail Operations PAN India</p>
               </div>
