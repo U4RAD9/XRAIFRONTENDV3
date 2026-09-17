@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
 import Pagination from '../../components/Pagination';
+import { generateInvoice } from '../../utils/generateInvoice';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
@@ -91,6 +92,25 @@ function AdminBookings() {
       }
     } catch (error) {
       console.error("Error fetching booking details for files:", error);
+    }
+  };
+
+  const handleDownloadInvoice = async (booking) => {
+    try {
+      const response = await axiosInstance.get(`${ENDPOINTS.BOOKING_DETAILS}/${booking.id}`);
+      if (response.data.Success) {
+        generateInvoice({ 
+          ...response.data.Booking, 
+          patientId: booking.patientId,
+          bookingDate: booking.bookingDate,
+          slot: booking.slot
+        });
+      } else {
+        alert("Failed to fetch booking details for invoice.");
+      }
+    } catch (error) {
+      console.error("Error fetching booking details for invoice:", error);
+      alert("Error generating invoice.");
     }
   };
 
@@ -206,7 +226,11 @@ function AdminBookings() {
                       >
                         <i className="fas fa-edit"></i>
                       </button>
-                      <button className="cursor-pointer text-blue-500 hover:text-blue-700 mx-1" title="Invoice">
+                      <button 
+                        onClick={() => handleDownloadInvoice(booking)}
+                        className="cursor-pointer text-blue-500 hover:text-blue-700 mx-1" 
+                        title="Invoice"
+                      >
                         <i className="fas fa-file-invoice-dollar"></i>
                       </button>
                     </td>

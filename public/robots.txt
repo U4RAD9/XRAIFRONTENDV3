@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /patient/
+Disallow: /partner/
+Disallow: /technician/
+Disallow: /channel-partner/
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://xraidigital.com/sitemap.xml
