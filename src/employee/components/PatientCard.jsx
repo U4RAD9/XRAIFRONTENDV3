@@ -5,8 +5,8 @@ const PatientCard = ({ patient, onBookSlot }) => {
     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex flex-col justify-between h-full hover:shadow-md transition-shadow">
       <div className="text-sm text-gray-700 space-y-2 mb-4">
         <p><span className="font-semibold text-gray-900">Name :</span> {patient.patient_name}</p>
-        <p><span className="font-semibold text-gray-900">Age:</span> {patient.age} <span className="font-semibold text-gray-900 ml-2">BP:</span> {patient.bp}</p>
-        <p><span className="font-semibold text-gray-900">Weight:</span> {patient.weight} <span className="font-semibold text-gray-900 ml-2">Height:</span> {patient.height}</p>
+        <p><span className="font-semibold text-gray-900">Age:</span> {patient.age}</p>
+        <p><span className="font-semibold text-gray-900">Weight:</span> {patient.weight}</p>
         <p><span className="font-semibold text-gray-900">Gender :</span> {patient.gender}</p>
         <p><span className="font-semibold text-gray-900">Address :</span> {patient.address}</p>
         <p><span className="font-semibold text-gray-900">Pin :</span> {patient.pin}</p>

@@ -13,6 +13,8 @@ function AdminPatients() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [editFormData, setEditFormData] = useState({});
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -63,6 +65,61 @@ function AdminPatients() {
     }
   };
 
+  const handleEditClick = (patient) => {
+    setSelectedPatient(patient);
+    setEditFormData({
+      patientName: patient.patientName === 'N/A' ? '' : patient.patientName,
+      age: patient.age === 'N/A' ? '' : patient.age,
+      weight: patient.weight === 'N/A' ? '' : patient.weight,
+      gender: patient.gender === 'N/A' ? '' : patient.gender,
+      height: patient.height === 'N/A' ? '' : patient.height,
+      bp: patient.bp === 'N/A' ? '' : patient.bp,
+      address: patient.address === 'N/A' ? '' : patient.address,
+      pin: patient.pin === 'N/A' ? '' : patient.pin,
+      email: patient.email === 'N/A' ? '' : patient.email,
+      contactNo: patient.contactNo === 'N/A' ? '' : patient.contactNo,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePatient = async () => {
+    try {
+      setUpdating(true);
+      const payload = {
+        patient_name: editFormData.patientName,
+        age: editFormData.age,
+        weight: editFormData.weight,
+        gender: editFormData.gender,
+        // height: editFormData.height,
+        // bp: editFormData.bp,
+        address: editFormData.address,
+        pin: editFormData.pin,
+        email: editFormData.email,
+        alternate_mobile_number: editFormData.contactNo,
+      };
+      await axiosInstance.patch(`${ENDPOINTS.PATIENTS}${selectedPatient.id}/`, payload);
+      setShowEditModal(false);
+      fetchPatients();
+    } catch (error) {
+      console.error("Error updating patient:", error);
+      alert("Failed to update patient details.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDeletePatient = async (patientId) => {
+    if (window.confirm('Are you sure you want to delete this patient? This action cannot be undone.')) {
+      try {
+        await axiosInstance.delete(`${ENDPOINTS.PATIENTS}${patientId}/`);
+        fetchPatients();
+      } catch (error) {
+        console.error("Error deleting patient:", error);
+        alert("Failed to delete patient. They might be associated with existing bookings.");
+      }
+    }
+  };
+
   const columns = [
     { key: 'patientName', label: 'PATIENT NAME' },
     { key: 'age', label: 'AGE' },
@@ -73,9 +130,9 @@ function AdminPatients() {
     { key: 'email', label: 'EMAIL' },
     { key: 'pin', label: 'PIN' },
     { key: 'refNo', label: 'REF NO' },
-    { key: 'height', label: 'HEIGHT' },
-    { key: 'bmi', label: 'BMI' },
-    { key: 'bp', label: 'BP' }
+    // { key: 'height', label: 'HEIGHT' },
+    { key: 'bmi', label: 'BMI' }
+    // { key: 'bp', label: 'BP' }
   ];
 
   const filteredPatients = patients;
@@ -129,16 +186,17 @@ function AdminPatients() {
                     ))}
                     <td className="py-3 px-4 text-center">
                       <button 
-                        onClick={() => {
-                          setSelectedPatient(patient);
-                          setShowEditModal(true);
-                        }}
+                        onClick={() => handleEditClick(patient)}
                         className="cursor-pointer text-[#00acc1] hover:text-[#008ba3] mx-1" 
                         title="Edit"
                       >
                         <i className="fas fa-edit"></i>
                       </button>
-                      <button className="cursor-pointer text-red-500 hover:text-red-700 mx-1" title="Delete">
+                      <button 
+                        onClick={() => handleDeletePatient(patient.id)}
+                        className="cursor-pointer text-red-500 hover:text-red-700 mx-1" 
+                        title="Delete"
+                      >
                         <i className="fas fa-trash-alt"></i>
                       </button>
                     </td>
@@ -169,7 +227,8 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Patient Name</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.patientName}
+                    value={editFormData.patientName || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, patientName: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -177,7 +236,8 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Age</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.age}
+                    value={editFormData.age || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, age: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -186,7 +246,8 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Weight</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.weight}
+                    value={editFormData.weight || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, weight: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -194,16 +255,20 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Gender</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.gender}
+                    value={editFormData.gender || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
 
+                {/* Height and BP removed per request */}
+                {/* 
                 <div>
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Height</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.height}
+                    value={editFormData.height || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, height: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -211,16 +276,19 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">BP</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.bp}
+                    value={editFormData.bp || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, bp: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
-                </div>
+                </div> 
+                */}
 
                 <div>
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Address</label>
                   <input 
                     type="text"
-                    defaultValue={selectedPatient.address}
+                    value={editFormData.address || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -228,7 +296,8 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Pin</label>
                   <input 
                     type="password" 
-                    defaultValue={selectedPatient.pin}
+                    value={editFormData.pin || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, pin: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -237,7 +306,8 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Email</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.email}
+                    value={editFormData.email || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -245,7 +315,8 @@ function AdminPatients() {
                   <label className="block text-[15px] font-bold text-[#35435e] mb-2">Alternate Number</label>
                   <input 
                     type="text" 
-                    defaultValue={selectedPatient.contactNo}
+                    value={editFormData.contactNo || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, contactNo: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#35435e]"
                   />
                 </div>
@@ -255,15 +326,17 @@ function AdminPatients() {
             <div className="px-8 py-5 border-t border-gray-100 flex justify-end gap-4 flex-shrink-0 bg-gray-50">
               <button 
                 onClick={() => setShowEditModal(false)}
-                className="cursor-pointer px-6 py-2.5 border border-gray-200 text-[#5a6a85] font-bold rounded shadow-sm hover:bg-gray-50 transition-colors bg-white uppercase"
+                disabled={updating}
+                className="cursor-pointer px-6 py-2.5 border border-gray-200 text-[#5a6a85] font-bold rounded shadow-sm hover:bg-gray-50 transition-colors bg-white uppercase disabled:opacity-50"
               >
                 CLOSE
               </button>
               <button 
-                onClick={() => setShowEditModal(false)}
-                className="cursor-pointer px-6 py-2.5 bg-[#2a8bf2] text-white font-bold rounded shadow-sm hover:bg-[#1a7ae1] transition-colors uppercase"
+                onClick={handleUpdatePatient}
+                disabled={updating}
+                className="cursor-pointer px-6 py-2.5 bg-[#2a8bf2] text-white font-bold rounded shadow-sm hover:bg-[#1a7ae1] transition-colors uppercase disabled:opacity-50"
               >
-                UPDATE
+                {updating ? 'UPDATING...' : 'UPDATE'}
               </button>
             </div>
       </Modal>

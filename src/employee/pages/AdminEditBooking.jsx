@@ -144,6 +144,20 @@ function AdminEditBooking() {
     }
   };
 
+  const handleUpdateDetails = async () => {
+    try {
+      await axiosInstance.patch(`/slot-booking-master/${id}/`, {
+        slot_booking_datetime: visitDate,
+        start_datetime: visitDate,
+        end_datetime: visitDate,
+        payment_mode: paymentMode
+      });
+      alert("Booking details updated successfully!");
+    } catch (err) {
+      console.error("Error updating details:", err);
+      alert("Failed to update booking details.");
+    }
+  };
 
 
   return (
@@ -240,7 +254,13 @@ function AdminEditBooking() {
               <div>
                 <label className="block text-[12px] font-bold text-[#233560] mb-1">Payment Mode:</label>
                 <input type="text" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] text-gray-600 focus:outline-none focus:border-[#00acc1] bg-white" />
-                <div className="mt-4 px-2">
+                <div className="mt-4 flex gap-2 flex-wrap">
+                  <button 
+                    onClick={handleUpdateDetails}
+                    className="flex-1 min-w-[120px] bg-[#00acc1] text-white text-[11px] font-bold px-2 py-2.5 rounded hover:bg-[#0097a7] transition-colors flex justify-center items-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <i className="fas fa-save"></i> SAVE CHANGES
+                  </button>
                   <button 
                     onClick={() => {
                       if (prescriptionFile) {
@@ -249,7 +269,7 @@ function AdminEditBooking() {
                         alert("No prescription file uploaded.");
                       }
                     }}
-                    className="w-[180px] bg-[#233560] text-white text-[11px] font-bold px-2 py-2.5 rounded hover:bg-[#1a2849] transition-colors flex justify-center items-center gap-2 cursor-pointer shadow-sm"
+                    className="flex-1 min-w-[120px] bg-[#233560] text-white text-[11px] font-bold px-2 py-2.5 rounded hover:bg-[#1a2849] transition-colors flex justify-center items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <i className="fas fa-eye"></i> VIEW PRESCRIPTION
                   </button>

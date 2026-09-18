@@ -86,8 +86,8 @@ function PartnerDashboard() {
         age: newPatient.age,
         weight: newPatient.weight,
         gender: newPatient.gender,
-        height: newPatient.height,
-        bp: newPatient.bp,
+        // height: newPatient.height,
+        // bp: newPatient.bp,
         address: newPatient.address,
         pin: newPatient.pin,
         email: newPatient.email,
@@ -112,9 +112,9 @@ function PartnerDashboard() {
     { key: 'sno', label: 'S#' },
     { key: 'patientName', label: 'Name' },
     { key: 'age', label: 'Age' },
-    { key: 'bp', label: 'BP' },
+    // { key: 'bp', label: 'BP' },
     { key: 'weight', label: 'Weight' },
-    { key: 'height', label: 'Height' },
+    // { key: 'height', label: 'Height' },
     { key: 'gender', label: 'Gender' },
     { key: 'address', label: 'Address' },
     { key: 'pin', label: 'Pin' },
@@ -204,9 +204,9 @@ function PartnerDashboard() {
                     <td className="py-3 px-4 text-center">{index + 1}</td>
                     <td className="py-3 px-4 text-center">{patient.patientName}</td>
                     <td className="py-3 px-4 text-center">{patient.age}</td>
-                    <td className="py-3 px-4 text-center">{patient.bp}</td>
+                    {/* <td className="py-3 px-4 text-center">{patient.bp}</td> */}
                     <td className="py-3 px-4 text-center">{patient.weight}</td>
-                    <td className="py-3 px-4 text-center">{patient.height}</td>
+                    {/* <td className="py-3 px-4 text-center">{patient.height}</td> */}
                     <td className="py-3 px-4 text-center">{patient.gender}</td>
                     <td className="py-3 px-4 text-left">{patient.address}</td>
                     <td className="py-3 px-4 text-center">{patient.pin}</td>
@@ -298,6 +298,8 @@ function PartnerDashboard() {
               </div>
 
               {/* Row 3 */}
+              {/* Row 3 - Height and BP are removed per request */}
+              {/* 
               <div>
                 <label className="block text-sm font-semibold text-[#1f2937] mb-1">Height</label>
                 <input type="text" value={newPatient.height} onChange={(e) => setNewPatient({ ...newPatient, height: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" placeholder="Height(Cm.)" />
@@ -305,7 +307,8 @@ function PartnerDashboard() {
               <div>
                 <label className="block text-sm font-semibold text-[#1f2937] mb-1">BP</label>
                 <input type="text" value={newPatient.bp} onChange={(e) => setNewPatient({ ...newPatient, bp: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" placeholder="BP" />
-              </div>
+              </div> 
+              */}
 
               {/* Row 4 */}
               <div>

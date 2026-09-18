@@ -199,8 +199,8 @@ function AdminMakeBooking() {
         age: newPatient.age,
         weight: newPatient.weight,
         gender: newPatient.gender,
-        height: newPatient.height,
-        bp: newPatient.bp,
+        // height: newPatient.height,
+        // bp: newPatient.bp,
         address: newPatient.address,
         pin: newPatient.pin,
         email: newPatient.email,
@@ -213,7 +213,7 @@ function AdminMakeBooking() {
       setNewPatient({ name: '', age: '', weight: '', gender: '', height: '', bp: '', address: '', pin: '', email: '', alternateMobile: '', comment: '' });
       // Refresh list
       const patientsRes = await axiosInstance.get(ENDPOINTS.PATIENTS);
-      setPatients(patientsRes.data);
+      setPatients(patientsRes.data?.results || patientsRes.data || []);
     } catch (err) {
       console.error("Error saving patient:", err);
       alert("Failed to save patient.");
@@ -890,9 +890,9 @@ function AdminMakeBooking() {
                 <tr>
                   <th className="py-3 px-4 text-left font-bold border-b border-gray-200">Name</th>
                   <th className="py-3 px-4 text-center font-bold border-b border-gray-200">Age</th>
-                  <th className="py-3 px-4 text-center font-bold border-b border-gray-200">BP</th>
                   <th className="py-3 px-4 text-center font-bold border-b border-gray-200">Weight</th>
-                  <th className="py-3 px-4 text-center font-bold border-b border-gray-200">Height</th>
+                  {/* <th className="py-3 px-4 text-center font-bold border-b border-gray-200">Height</th> */}
+                  {/* <th className="py-3 px-4 text-center font-bold border-b border-gray-200">BP</th> */}
                   <th className="py-3 px-4 text-center font-bold border-b border-gray-200">Gender</th>
                   <th className="py-3 px-4 text-left font-bold border-b border-gray-200">Address</th>
                   <th className="py-3 px-4 text-center font-bold border-b border-gray-200">Pin</th>
@@ -918,9 +918,9 @@ function AdminMakeBooking() {
                     <tr key={p.patient_id} className="hover:bg-blue-50 transition-colors duration-150">
                       <td className="py-3 px-4 text-left">{p.patient_name}</td>
                       <td className="py-3 px-4 text-center">{p.age}</td>
-                      <td className="py-3 px-4 text-center">{p.bp}</td>
+                      {/* <td className="py-3 px-4 text-center">{p.bp}</td> */}
                       <td className="py-3 px-4 text-center">{p.weight}</td>
-                      <td className="py-3 px-4 text-center">{p.height}</td>
+                      {/* <td className="py-3 px-4 text-center">{p.height}</td> */}
                       <td className="py-3 px-4 text-center">{p.gender}</td>
                       <td className="py-3 px-4 text-left">{p.address}</td>
                       <td className="py-3 px-4 text-center">{p.pin}</td>
@@ -1016,6 +1016,8 @@ function AdminMakeBooking() {
                 </div>
 
                 {/* Row 3 */}
+                {/* Row 3 - Height and BP are removed per request */}
+                {/* 
                 <div>
                   <label className="block text-sm font-semibold text-[#1f2937] mb-1">Height</label>
                   <input type="text" value={newPatient.height} onChange={(e) => setNewPatient({...newPatient, height: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" placeholder="Height(Cm.)" />
@@ -1023,7 +1025,8 @@ function AdminMakeBooking() {
                 <div>
                   <label className="block text-sm font-semibold text-[#1f2937] mb-1">BP</label>
                   <input type="text" value={newPatient.bp} onChange={(e) => setNewPatient({...newPatient, bp: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" placeholder="BP" />
-                </div>
+                </div> 
+                */}
 
                 {/* Row 4 */}
                 <div>

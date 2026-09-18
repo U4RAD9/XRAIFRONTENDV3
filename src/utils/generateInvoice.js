@@ -104,7 +104,7 @@ export const generateInvoice = async (bookingDetails) => {
         ],
         [
           'Patient Name:', patientName,
-          'Date:', `${dateStr} ${timeStr}`
+          'Date:', `${dateStr}`
         ],
         [
           'Age/Sex:', ageSex,
