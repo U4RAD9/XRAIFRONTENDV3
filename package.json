@@ -21,8 +21,10 @@
         "axios": "^1.19.0",
         "jspdf": "^4.2.1",
         "jspdf-autotable": "^5.0.8",
+        "leaflet": "^1.9.4",
         "lucide-react": "^1.28.0",
         "react-helmet-async": "^3.0.0",
+        "react-leaflet": "^5.0.0",
         "react-router-dom": "^7.18.2",
         "react-toastify": "^11.1.0",
         "swiper": "^14.0.7"

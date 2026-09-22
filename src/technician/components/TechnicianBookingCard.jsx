@@ -1,62 +1,54 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function TechnicianBookingCard({ 
-  booking, 
-  onUpdateTestStatus, 
-  onViewFiles, 
-  onUpdatePaymentStatus 
-}) {
+function TechnicianBookingCard({ booking, onUpdateTestStatus, onViewFiles, onUpdatePaymentStatus, onToggleTrack, isActiveTracking }) {
   const navigate = useNavigate();
-
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-      {/* Header */}
-      <div className="bg-blue-50/50 px-4 py-3 border-b border-gray-100 flex justify-between items-start">
-        <div>
-          <h3 className="font-bold text-[#233560] text-lg">{booking.patientName}</h3>
-          <p className="text-xs text-gray-500 font-medium">ID: {booking.patientId} | Ref: {booking.refNo || 'N/A'}</p>
-        </div>
-        <div className="text-right">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col h-full overflow-hidden relative">
+      {/* Top Banner (Status & ID) */}
+      <div className="bg-[#233560] text-white py-2 px-3 flex justify-between items-center text-xs">
+        <span className="font-bold tracking-wide">ID: {booking.patientId}</span>
+        <div className="flex items-center gap-2">
           <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-            booking.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-          }`}>
-            {booking.status === 'Completed' ? 'Completed' : 'Pending'}
-          </span>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-center text-sm">
-          <i className="fas fa-phone-alt text-gray-400 w-6 text-center"></i>
-          <span className="text-gray-700">{booking.phoneNo}</span>
-        </div>
-        
-        <div className="flex items-center text-sm">
-          <i className="fas fa-calendar-alt text-gray-400 w-6 text-center"></i>
-          <span className="text-gray-700">{booking.bookingDate} <span className="text-gray-400 mx-1">|</span> {booking.slot}</span>
-        </div>
-
-        <div className="flex items-center text-sm">
-          <i className="fas fa-credit-card text-gray-400 w-6 text-center"></i>
-          <span className="text-gray-700">{booking.paymentMethod}</span>
-          <span className={`ml-auto px-2 py-0.5 rounded text-xs font-bold ${
-            booking.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+            booking.paymentStatus === 'Paid' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
           }`}>
             {booking.paymentStatus}
           </span>
         </div>
-
-        {booking.remarks && (
-          <div className="flex items-start text-sm bg-gray-50 p-2 rounded">
-            <i className="fas fa-comment-alt text-gray-400 w-6 text-center mt-0.5"></i>
-            <span className="text-gray-600 italic text-xs leading-tight">{booking.remarks}</span>
-          </div>
-        )}
       </div>
 
-      {/* Actions Grid */}
+      {/* Content Body */}
+      <div className="p-4 flex-grow flex flex-col gap-3">
+        
+        {/* Patient Details */}
+        <div>
+          <h3 className="font-bold text-gray-900 text-base leading-tight mb-1">{booking.patientName}</h3>
+          <div className="text-gray-500 text-xs flex flex-col gap-1">
+            <p><i className="fas fa-phone-alt w-4 text-center"></i> {booking.phoneNo}</p>
+            <p className="truncate"><i className="fas fa-file-alt w-4 text-center"></i> Ref: {booking.refNo || 'N/A'}</p>
+          </div>
+        </div>
+
+        <hr className="border-gray-100" />
+
+        {/* Booking Details */}
+        <div className="grid grid-cols-2 gap-y-2 text-xs">
+          <div>
+            <p className="text-gray-400 font-medium">Date</p>
+            <p className="font-semibold text-gray-700">{booking.bookingDate.split(' ')[0]}</p>
+          </div>
+          <div>
+            <p className="text-gray-400 font-medium">Slot</p>
+            <p className="font-semibold text-gray-700">{booking.slot}</p>
+          </div>
+          <div className="col-span-2">
+            <p className="text-gray-400 font-medium">Remarks</p>
+            <p className="font-semibold text-gray-700 truncate">{booking.remarks || 'None'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 border-t border-gray-100">
         <button 
           onClick={() => onViewFiles(booking)}
@@ -67,9 +59,13 @@ function TechnicianBookingCard({
         </button>
 
         <button 
-          className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white border border-gray-200 rounded text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-colors cursor-pointer"
+          onClick={onToggleTrack}
+          className={`flex items-center justify-center gap-1.5 py-1.5 px-2 border rounded font-semibold text-xs transition-colors cursor-pointer ${
+            isActiveTracking ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white border-gray-200 text-blue-600 hover:bg-blue-50'
+          }`}
         >
-          <i className="fas fa-map-marker-alt"></i> Track
+          <i className={`fas ${isActiveTracking ? 'fa-spinner fa-spin' : 'fa-map-marker-alt'}`}></i> 
+          {isActiveTracking ? 'Tracking Active' : 'Start Tracking'}
         </button>
 
         <button 

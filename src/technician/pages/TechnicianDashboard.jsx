@@ -21,6 +21,45 @@ function TechnicianDashboard() {
   const [selectedBookingForFiles, setSelectedBookingForFiles] = useState(null);
   const [selectedBookingServices, setSelectedBookingServices] = useState([]);
   const [selectedBookingPrescription, setSelectedBookingPrescription] = useState(null);
+  const [activeTrackingBookingId, setActiveTrackingBookingId] = useState(null);
+
+  // Background geolocation tracking
+  useEffect(() => {
+    let watchId;
+
+    if (activeTrackingBookingId && navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        async (position) => {
+          try {
+            await axiosInstance.post(ENDPOINTS.TRACKING, {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              slot_booking: activeTrackingBookingId,
+              timestamp: new Date().toISOString(),
+              user: sessionStorage.getItem('UserID')
+            });
+          } catch (err) {
+            console.error("Error pushing location:", err);
+          }
+        },
+        (error) => console.error("Geolocation error:", error),
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+    }
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [activeTrackingBookingId]);
+
+  const handleToggleTrack = (bookingId) => {
+    if (activeTrackingBookingId === bookingId) {
+      setActiveTrackingBookingId(null);
+    } else {
+      setActiveTrackingBookingId(bookingId);
+      alert("Tracking started! Your location is now being updated live.");
+    }
+  };
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -88,6 +127,9 @@ function TechnicianDashboard() {
       const response = await axiosInstance.post(`${ENDPOINTS.UPDATE_BOOKING_STATUS}/${id}`, {});
       if (response.data.Success) {
         alert('Test status updated to Completed!');
+        if (activeTrackingBookingId === id) {
+          setActiveTrackingBookingId(null);
+        }
         fetchTechnicianData();
       } else {
         alert(response.data.Message || 'Failed to update test status');
@@ -295,8 +337,14 @@ function TechnicianDashboard() {
                       )}
                     </td>
                     <td className="py-4 px-6">
-                      <button className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded font-bold text-xs transition-colors flex items-center gap-1">
-                        <i className="fas fa-map-marker-alt"></i> Track
+                      <button 
+                        onClick={() => handleToggleTrack(booking.id)}
+                        className={`px-3 py-1.5 rounded font-bold text-xs transition-colors flex items-center gap-1 border ${
+                          activeTrackingBookingId === booking.id ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-600 border-transparent hover:bg-blue-100'
+                        }`}
+                      >
+                        <i className={`fas ${activeTrackingBookingId === booking.id ? 'fa-spinner fa-spin' : 'fa-map-marker-alt'}`}></i> 
+                        {activeTrackingBookingId === booking.id ? 'Tracking Active' : 'Start Tracking'}
                       </button>
                     </td>
                     <td className="py-4 px-6">
@@ -346,6 +394,8 @@ function TechnicianDashboard() {
               onUpdateTestStatus={handleUpdateTestStatus}
               onViewFiles={handleViewFiles}
               onUpdatePaymentStatus={handleUpdatePaymentStatus}
+              onToggleTrack={() => handleToggleTrack(booking.id)}
+              isActiveTracking={activeTrackingBookingId === booking.id}
             />
           ))
         )}

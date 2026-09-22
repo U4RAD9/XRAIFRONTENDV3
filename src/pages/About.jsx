@@ -247,15 +247,15 @@ function About() {
               <img src="/images/ragib.jpeg" alt="Ragib" className="w-full h-56 object-fill" />
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-md">
-                  <a href="https://www.linkedin.com/in/md-ragib-9b5a4a230" target="_blank" rel="noopener noreferrer" className="hover:text-[#11A8A4] transition-colors">Ragib</a>
+                  <a href="https://www.linkedin.com/in/md-ragib-9b5a4a230" target="_blank" rel="noopener noreferrer" className="hover:text-[#11A8A4] transition-colors">Md Ragib</a>
                 </h4>
-                <p className="text-xs text-[#11A8A4] font-semibold mt-1">Assistant Operations manager</p>
+                <p className="text-xs text-[#11A8A4] font-semibold mt-1">Assistant Operations Manager</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
               <img src="/images/shalini.jpeg" alt="Shalini" className="w-full h-56 object-fill" />
               <div className="p-4">
-                <h4 className="font-bold text-gray-800 text-md">Shalini</h4>
+                <h4 className="font-bold text-gray-800 text-md">Shalini Chauhan</h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Camp Coordinator</p>
               </div>
             </div>

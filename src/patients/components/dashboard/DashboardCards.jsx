@@ -1,6 +1,6 @@
 import React from 'react';
 
-function DashboardCards({ bookings, onViewDetails, onViewReports }) {
+function DashboardCards({ bookings, onViewDetails, onViewReports, onTrack }) {
   if (bookings.length === 0) {
     return <div className="text-center py-8 text-gray-500">No bookings found</div>;
   }
@@ -47,8 +47,8 @@ function DashboardCards({ bookings, onViewDetails, onViewReports }) {
               </button>
             )}
             <button 
-              onClick={(e) => e.preventDefault()}
-              className="col-span-1 border border-[#11A8A4] text-[#11A8A4] hover:bg-[#11A8A4] hover:text-white font-semibold py-1.5 px-2 rounded text-xs text-center shadow-sm transition-colors flex items-center justify-center cursor-default"
+              onClick={() => onTrack(booking)}
+              className="col-span-1 border border-[#11A8A4] text-[#11A8A4] hover:bg-[#11A8A4] hover:text-white font-semibold py-1.5 px-2 rounded text-xs text-center shadow-sm transition-colors flex items-center justify-center cursor-pointer"
               title="Track your technician"
             >
               <i className="fas fa-map-marker-alt mr-1"></i> Track

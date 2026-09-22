@@ -5,6 +5,7 @@ export const ENDPOINTS = {
   FORGET_MPIN: '/auth/forget_mpin',
   VERIFY_OTP: '/auth/verify_otp',
   UPDATE_PASSWORD: '/auth/update_password',
+  TRACKING: '/tracking/',
   
   // Booking
   DASHBOARD_STATS: '/booking/dashboard_stats',

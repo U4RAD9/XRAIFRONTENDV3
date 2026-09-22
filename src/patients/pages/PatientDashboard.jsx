@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DashboardCards from '../components/dashboard/DashboardCards';
 import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
+import Pagination from '../../components/Pagination';
+import BookingMapTracking from '../../components/BookingMapTracking';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
@@ -9,6 +11,10 @@ function PatientDashboard() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [viewMode, setViewMode] = useState('table');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [trackingBookingId, setTrackingBookingId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +62,11 @@ function PatientDashboard() {
     };
     fetchBookings();
   }, []);
+
+  const handleTrack = (booking) => {
+    setTrackingBookingId(booking.BookingID || booking.id);
+    setShowTrackingModal(true);
+  };
 
   // Filter bookings based on search query
   const filteredBookings = bookings.filter(booking => 
@@ -113,6 +124,7 @@ function PatientDashboard() {
             setSelectedReports(reports);
             setShowReportsModal(true);
           }}
+          onTrack={handleTrack}
         />
       </div>
 
@@ -171,7 +183,7 @@ function PatientDashboard() {
                         )}
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <button className="text-[#11A8A4] border border-[#11A8A4] rounded px-3 py-1 text-xs font-semibold hover:bg-[#11A8A4] hover:text-white transition-colors cursor-default" onClick={(e) => e.preventDefault()} title="Track your technician">
+                        <button onClick={() => handleTrack(booking)} className="text-[#11A8A4] border border-[#11A8A4] rounded px-3 py-1 text-xs font-semibold hover:bg-[#11A8A4] hover:text-white transition-colors cursor-pointer" title="Track your technician">
                           Track
                         </button>
                       </td>
@@ -203,6 +215,7 @@ function PatientDashboard() {
               setSelectedReports(reports);
               setShowReportsModal(true);
             }} 
+            onTrack={handleTrack}
           />
         )}
       </div>
@@ -379,6 +392,14 @@ function PatientDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Tracking Modal */}
+      {showTrackingModal && trackingBookingId && (
+        <BookingMapTracking 
+          bookingId={trackingBookingId} 
+          onClose={() => setShowTrackingModal(false)} 
+        />
       )}
 
     </div>

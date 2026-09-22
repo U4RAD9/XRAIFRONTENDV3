@@ -4,6 +4,7 @@ import axiosInstance from '../../api/axiosInstance';
 import { ENDPOINTS } from '../../api/endpoints';
 import Pagination from '../../components/Pagination';
 import { generateInvoice } from '../../utils/generateInvoice';
+import BookingMapTracking from '../../components/BookingMapTracking';
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
@@ -16,6 +17,8 @@ function AdminBookings() {
   const [selectedBookingServices, setSelectedBookingServices] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [trackingBookingId, setTrackingBookingId] = useState(null);
   
   const [columnFilters, setColumnFilters] = useState({
     patientId: '',
@@ -119,6 +122,11 @@ function AdminBookings() {
       ...columnFilters,
       [column]: e.target.value
     });
+  };
+
+  const handleTrack = (bookingId) => {
+    setTrackingBookingId(bookingId);
+    setShowTrackingModal(true);
   };
 
   const filteredBookings = bookings.filter(booking => {
@@ -234,8 +242,13 @@ function AdminBookings() {
                         <i className="fas fa-file-invoice-dollar"></i>
                       </button>
                     </td>
-                    <td>
-                      See Tracking
+                    <td className="py-3 px-4 text-center">
+                      <button 
+                        onClick={() => handleTrack(booking.id)}
+                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded font-bold text-xs transition-colors flex items-center justify-center gap-1 mx-auto"
+                      >
+                        <i className="fas fa-route"></i> View Route
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -344,6 +357,13 @@ function AdminBookings() {
         </div>
       )}
 
+      {/* Tracking Modal */}
+      {showTrackingModal && trackingBookingId && (
+        <BookingMapTracking 
+          bookingId={trackingBookingId} 
+          onClose={() => setShowTrackingModal(false)} 
+        />
+      )}
     </div>
   );
 }
