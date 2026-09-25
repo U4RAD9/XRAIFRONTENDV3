@@ -230,8 +230,17 @@ function ChannelPartnerPackages() {
                     <span className="font-semibold text-gray-800">{pkg.report_language || '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500"><i className="fas fa-calendar mr-2 text-gray-400"></i>Period</span>
-                    <span className="font-semibold text-gray-800 text-xs">{pkg.start_date} → {pkg.end_date}</span>
+                    <span className="text-gray-500">
+                      <i className="fas fa-users mr-2 text-gray-400"></i>
+                      Family Members
+                    </span>
+
+                    <span className="font-semibold text-gray-800">
+                      {pkg.max_family_members !== null &&
+                      pkg.max_family_members !== undefined
+                        ? `${pkg.max_family_members} total`
+                        : 'Unlimited'}
+                    </span>
                   </div>
                   {pkg.camp !== null && pkg.camp !== undefined && (
                     <div className="flex justify-between">

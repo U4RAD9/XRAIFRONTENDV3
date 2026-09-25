@@ -46,6 +46,11 @@ function ChannelPartnerRegistration() {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedPackage = location.state?.selectedPackage || null;
+  const maxMembers =
+    selectedPackage?.max_family_members !== null &&
+    selectedPackage?.max_family_members !== undefined
+      ? Number(selectedPackage.max_family_members)
+      : null;
 
   const [family, setFamily] = useState({
     primary_mobile: '',
@@ -134,7 +139,21 @@ function ChannelPartnerRegistration() {
     setMembers(updated);
   };
 
-  const addMember = () => setMembers([...members, emptyMember('SON')]);
+  const addMember = () => {
+    // Family Head is already counted as 1 member
+    const currentTotalMembers = 1 + members.length;
+
+    if (maxMembers !== null && currentTotalMembers >= maxMembers) {
+      alert(
+        `This package allows a maximum of ${maxMembers} family member${
+          maxMembers !== 1 ? 's' : ''
+        }, including the Family Head.`
+      );
+      return;
+    }
+
+    setMembers([...members, emptyMember('SON')]);
+  };
   const removeMember = (idx) => setMembers(members.filter((_, i) => i !== idx));
 
   const handleExcelUpload = async (e) => {
@@ -182,17 +201,57 @@ function ChannelPartnerRegistration() {
   };
 
   const validate = () => {
-    if (!head.first_name || !head.last_name || !head.date_of_birth || !head.age || !head.gender || !head.mobile) {
-      alert('Please fill required Family Head fields: First Name, Last Name, DOB, Age, Gender, Mobile.');
+    // -----------------------------------------
+    // 1. Family Head validation
+    // -----------------------------------------
+    if (
+      !head.first_name ||
+      !head.last_name ||
+      !head.date_of_birth ||
+      !head.age ||
+      !head.gender ||
+      !head.mobile
+    ) {
+      alert(
+        'Please fill required Family Head fields: First Name, Last Name, DOB, Age, Gender, Mobile.'
+      );
       return false;
     }
+
+    // -----------------------------------------
+    // 2. Package member limit
+    // Family Head counts as 1 member
+    // -----------------------------------------
+    const totalMembers = 1 + members.length;
+
+    if (maxMembers !== null && totalMembers > maxMembers) {
+      alert(
+        `This package allows a maximum of ${maxMembers} family member${
+          maxMembers !== 1 ? 's' : ''
+        }, including the Family Head.`
+      );
+      return false;
+    }
+
+    // -----------------------------------------
+    // 3. Additional member validation
+    // -----------------------------------------
     for (let i = 0; i < members.length; i++) {
       const m = members[i];
-      if (!m.first_name || !m.last_name || !m.date_of_birth || !m.age) {
-        alert(`Please fill First Name, Last Name, DOB and Age for Member #${i + 1}.`);
+
+      if (
+        !m.first_name ||
+        !m.last_name ||
+        !m.date_of_birth ||
+        !m.age
+      ) {
+        alert(
+          `Please fill First Name, Last Name, DOB and Age for Member #${i + 1}.`
+        );
         return false;
       }
     }
+
     return true;
   };
 
@@ -322,7 +381,22 @@ function ChannelPartnerRegistration() {
         <div>
           <p className="text-xs uppercase tracking-widest opacity-80 font-semibold">Selected Package</p>
           <h3 className="text-xl font-bold mt-1">{selectedPackage.name} <span className="font-normal text-white/80 text-sm">(ID: {selectedPackage.id})</span></h3>
-          <p className="text-sm text-white/90 mt-1">₹{selectedPackage.price} • {selectedPackage.service_ids?.length} services • {selectedPackage.report_language} • {selectedPackage.start_date} → {selectedPackage.end_date}</p>
+          <p className="text-sm text-white/90 mt-1">
+            ₹{selectedPackage.price}
+            {' • '}
+            {selectedPackage.service_ids?.length || 0} services
+            {' • '}
+            {selectedPackage.report_language}
+            {' • '}
+            {selectedPackage.start_date} → {selectedPackage.end_date}
+
+            {maxMembers !== null && (
+              <>
+                {' • '}
+                Max {maxMembers} members
+              </>
+            )}
+          </p>
         </div>
         <div className="flex gap-2 shrink-0">
           <input ref={excelInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleExcelUpload} className="hidden" />
@@ -473,12 +547,48 @@ function ChannelPartnerRegistration() {
         {/* Additional Members */}
         <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i className="fas fa-users text-[#11A8A4]"></i> Family Members <span className="text-xs font-normal text-gray-500">({members.length} added)</span></h3>
-            <button type="button" onClick={addMember} className="cursor-pointer bg-[#11A8A4] hover:bg-[#0e8c89] text-white font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2">
-              <i className="fas fa-plus"></i> Add Member
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <i className="fas fa-users text-[#11A8A4]"></i>
+
+              Family Members
+
+              <span className="text-xs font-normal text-gray-500">
+                ({1 + members.length}
+                {maxMembers !== null ? ` / ${maxMembers}` : ''} total)
+              </span>
+            </h3>
+            <button
+              type="button"
+              onClick={addMember}
+              disabled={
+                maxMembers !== null &&
+                (1 + members.length) >= maxMembers
+              }
+              className={`font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${
+                maxMembers !== null &&
+                (1 + members.length) >= maxMembers
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'cursor-pointer bg-[#11A8A4] hover:bg-[#0e8c89] text-white'
+              }`}
+            >
+              <i className="fas fa-plus"></i>
+
+              {maxMembers !== null &&
+              (1 + members.length) >= maxMembers
+                ? 'Member Limit Reached'
+                : 'Add Member'}
             </button>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Add spouse, son, daughter, etc.</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Add spouse, son, daughter, etc.
+
+            {maxMembers !== null && (
+              <span className="ml-2 font-semibold text-[#11A8A4]">
+                Maximum {maxMembers} member{maxMembers !== 1 ? 's' : ''} total,
+                including Family Head.
+              </span>
+            )}
+          </p>
 
           {members.length === 0 ? (
             <div className="mt-6 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400">
