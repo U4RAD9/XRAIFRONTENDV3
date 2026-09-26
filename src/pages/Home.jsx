@@ -427,8 +427,8 @@ function Home() {
                   {[
                     "/Content/images/campimage.jpeg",
                     "/Content/images/xrayimage.jpeg",
-                    "/Content/images/campimage.jpeg",
-                    "/Content/images/xrayimage.jpeg"
+                    "/Content/images/kolkata.jpeg",
+                    "/Content/images/poojakolkata.jpeg"
                   ].map((imgUrl, index) => (
                     <SwiperSlide key={index}>
                       <div
@@ -463,18 +463,18 @@ function Home() {
 
               {/* Banner Icons */}
               <div className="relative z-10 flex gap-3 sm:gap-6 md:gap-14 items-center pt-2">
-                <div className="text-center">
+                <Link to="/services" className="text-center block hover:opacity-80 transition-opacity">
                   <i className="fa fa-hospital-alt text-xl md:text-2xl text-blue-500 mb-1"></i>
                   <p className="text-[11px] md:text-[13px] font-semibold text-gray-500">At Home<br />Health Test</p>
-                </div>
-                <div className="text-center">
+                </Link>
+                <a href="#package-overview" className="text-center block hover:opacity-80 transition-opacity">
                   <i className="fa fa-hospital-user text-xl md:text-2xl text-blue-500 mb-1"></i>
                   <p className="text-[11px] md:text-[13px] font-semibold text-gray-500">Health<br />Check ups</p>
-                </div>
-                <div className="text-center">
+                </a>
+                <a href="#package-overview" className="text-center block hover:opacity-80 transition-opacity">
                   <i className="fa fa-building text-xl md:text-2xl text-blue-500 mb-1"></i>
                   <p className="text-[11px] md:text-[13px] font-semibold text-gray-500">Corporate Health<br />Packages</p>
-                </div>
+                </a>
               </div>
             </div>
           </div>
@@ -597,7 +597,7 @@ function Home() {
       </div>
 
       {/* Package Overview */}
-      <div className="container mx-auto mt-12 mb-6">
+      <div id="package-overview" className="container mx-auto mt-12 mb-6 scroll-mt-20">
         <h2 className="text-2xl md:text-3xl font-bold text-black mb-6 px-6">
           <i className="fas fa-layer-group text-[#0F847E] mr-2"></i> Package Overview
         </h2>

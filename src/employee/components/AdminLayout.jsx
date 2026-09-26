@@ -27,7 +27,7 @@ function AdminLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <header className="bg-white shadow-sm py-4 px-8 flex justify-between items-center z-10 sticky top-0">
-          <h1 className="text-2xl font-bold text-gray-800">Booking Operations</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Operations Dashboard</h1>
           <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 font-semibold flex items-center transition-colors">
             <i className="fas fa-sign-out-alt mr-2"></i> Logout
           </button>

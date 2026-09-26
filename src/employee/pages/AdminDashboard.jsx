@@ -262,100 +262,118 @@ function AdminDashboard() {
 
       {/* Details Modal */}
       {showDetailsModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4" onClick={() => setShowDetailsModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 flex flex-col overflow-y-auto">
-              <h2 className="text-2xl font-bold text-[#233560] mb-4">Booking Details</h2>
+        <div className="fixed inset-0 z-50 flex justify-center items-center p-4 overflow-hidden" onClick={() => setShowDetailsModal(false)}>
+          {/* Overlay Background */}
+          <div className="absolute inset-0 bg-slate-900/30"></div>
+          
+          {/* Glowing Ambient Orbs for Glassmorphism Effect */}
+          <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-cyan-400/40 rounded-full blur-[100px] pointer-events-none"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-indigo-500/30 rounded-full blur-[100px] pointer-events-none"></div>
+
+          {/* Main Glass Modal */}
+          <div className="relative bg-white/20 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-8 py-8 flex flex-col overflow-y-auto custom-scrollbar">
+              <h2 className="text-3xl font-extrabold text-slate-800 mb-6 drop-shadow-sm tracking-tight">Booking Details</h2>
+              
               {loadingDetails ? (
-                <div className="py-12 text-center text-gray-500 font-semibold">
+                <div className="py-12 text-center text-gray-700 font-semibold">
                   <i className="fas fa-spinner fa-spin mr-2"></i> Loading details...
                 </div>
               ) : selectedBookingDetails ? (
                 <div className="space-y-6">
                   {/* Patient Info */}
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i className="fas fa-user-injured text-blue-500 mr-2"></i>Patient Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div><span className="text-sm text-gray-500 font-semibold">Name:</span> <span className="font-bold text-gray-800">{selectedBookingDetails.patient.patientName}</span></div>
-                      <div><span className="text-sm text-gray-500 font-semibold">Phone:</span> <span className="text-gray-800">{selectedBookingDetails.patient.phoneNo}</span></div>
-                      <div><span className="text-sm text-gray-500 font-semibold">Age/Gender:</span> <span className="text-gray-800">{selectedBookingDetails.patient.age} / {selectedBookingDetails.patient.gender}</span></div>
-                      <div><span className="text-sm text-gray-500 font-semibold">Email:</span> <span className="text-gray-800">{selectedBookingDetails.patient.email}</span></div>
-                      <div className="md:col-span-2"><span className="text-sm text-gray-500 font-semibold">Address:</span> <span className="text-gray-800">{selectedBookingDetails.patient.address}</span></div>
+                  <div className="bg-white/30 backdrop-blur-lg p-5 rounded-2xl border border-white/60 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-white/50 pb-2">
+                      <i className="fas fa-user-injured text-cyan-600 mr-2 drop-shadow-sm"></i>Patient Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+                      <div><span className="text-sm font-semibold opacity-80">Name:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.patient.patientName}</span></div>
+                      <div><span className="text-sm font-semibold opacity-80">Phone:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.patient.phoneNo}</span></div>
+                      <div><span className="text-sm font-semibold opacity-80">Age/Gender:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.patient.age} / {selectedBookingDetails.patient.gender}</span></div>
+                      <div><span className="text-sm font-semibold opacity-80">Email:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.patient.email}</span></div>
+                      <div className="md:col-span-2"><span className="text-sm font-semibold opacity-80">Address:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.patient.address}</span></div>
                     </div>
                   </div>
 
                   {/* Booking Info */}
-                  <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-                    <h3 className="text-lg font-bold text-[#233560] mb-3 border-b border-blue-100 pb-2"><i className="fas fa-calendar-check text-blue-500 mr-2"></i>Booking Info</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div><span className="text-sm text-gray-500 font-semibold">ID:</span> <span className="font-bold text-[#00acc1]">#{selectedBookingDetails.id}</span></div>
-                      <div><span className="text-sm text-gray-500 font-semibold">Date & Slot:</span> <span className="text-gray-800">{selectedBookingDetails.visit_date} ({selectedBookingDetails.slot_name})</span></div>
-                      <div><span className="text-sm text-gray-500 font-semibold">Location:</span> <span className="text-gray-800">{selectedBookingDetails.location_name}</span></div>
-                      <div><span className="text-sm text-gray-500 font-semibold">Payment:</span> <span className="text-gray-800">{selectedBookingDetails.payment_mode}</span></div>
+                  <div className="bg-white/30 backdrop-blur-lg p-5 rounded-2xl border border-white/60 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-white/50 pb-2">
+                      <i className="fas fa-calendar-check text-cyan-600 mr-2 drop-shadow-sm"></i>Booking Info
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+                      <div><span className="text-sm font-semibold opacity-80">ID:</span> <span className="font-bold text-[#00acc1]">#{selectedBookingDetails.id}</span></div>
+                      <div><span className="text-sm font-semibold opacity-80">Date & Slot:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.visit_date} ({selectedBookingDetails.slot_name})</span></div>
+                      <div><span className="text-sm font-semibold opacity-80">Location:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.location_name}</span></div>
+                      <div><span className="text-sm font-semibold opacity-80">Payment:</span> <span className="font-bold text-slate-900">{selectedBookingDetails.payment_mode}</span></div>
                     </div>
                   </div>
 
                   {/* Services */}
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i className="fas fa-stethoscope text-blue-500 mr-2"></i>Services</h3>
+                  <div className="bg-white/30 backdrop-blur-lg p-5 rounded-2xl border border-white/60 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-white/50 pb-2">
+                      <i className="fas fa-stethoscope text-indigo-600 mr-2 drop-shadow-sm"></i>Services
+                    </h3>
                     {selectedBookingDetails.services && selectedBookingDetails.services.length > 0 ? (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                          <thead className="text-gray-500 uppercase font-semibold">
+                          <thead className="text-slate-700 uppercase font-bold tracking-wider text-xs">
                             <tr>
-                              <th className="pb-2">Group</th>
-                              <th className="pb-2">Service</th>
-                              <th className="pb-2 text-right">Price</th>
+                              <th className="pb-3 border-b border-white/40">Group</th>
+                              <th className="pb-3 border-b border-white/40">Service</th>
+                              <th className="pb-3 border-b border-white/40 text-right">Price</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200 text-gray-800">
+                          <tbody className="text-slate-800">
                             {selectedBookingDetails.services.map((svc, index) => (
-                              <tr key={index}>
-                                <td className="py-2">{svc.service}</td>
-                                <td className="py-2 font-medium">{svc.bodyPart}</td>
-                                <td className="py-2 text-right font-bold text-green-600">₹{svc.netPayable}</td>
+                              <tr key={index} className="border-b border-white/30 last:border-0">
+                                <td className="py-3">{svc.service}</td>
+                                <td className="py-3 font-semibold">{svc.bodyPart}</td>
+                                <td className="py-3 text-right font-bold text-teal-700">₹{svc.netPayable}</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
-                        <div className="mt-4 flex flex-col items-end text-sm">
-                           <div className="flex justify-between w-48 text-gray-600 mb-1">
-                             <span>Subtotal:</span>
-                             <span className="font-semibold">₹{parseFloat(selectedBookingDetails.gross_amount || selectedBookingDetails.services.reduce((acc, svc) => acc + (parseFloat(svc.netPayable) || 0), 0)).toFixed(2)}</span>
+                        
+                        <div className="mt-5 flex flex-col items-end text-sm">
+                           <div className="flex justify-between w-56 text-slate-700 mb-1">
+                             <span className="font-semibold opacity-80">Subtotal:</span>
+                             <span className="font-bold text-slate-900">₹{parseFloat(selectedBookingDetails.gross_amount || selectedBookingDetails.services.reduce((acc, svc) => acc + (parseFloat(svc.netPayable) || 0), 0)).toFixed(2)}</span>
                            </div>
                            
                            {/* Calculate discount if gross_amount is greater than amount */}
                            {(selectedBookingDetails.gross_amount && selectedBookingDetails.amount && parseFloat(selectedBookingDetails.gross_amount) > parseFloat(selectedBookingDetails.amount)) ? (
-                             <div className="flex justify-between w-48 text-green-600 mb-1">
-                               <span>Discount {selectedBookingDetails.offer_name || selectedBookingDetails.coupon_code ? `(${selectedBookingDetails.offer_name || selectedBookingDetails.coupon_code})` : ''}:</span>
-                               <span className="font-semibold">-₹{(parseFloat(selectedBookingDetails.gross_amount) - parseFloat(selectedBookingDetails.amount)).toFixed(2)}</span>
+                             <div className="flex justify-between w-56 text-teal-700 mb-1">
+                               <span className="font-semibold opacity-80">Discount {selectedBookingDetails.offer_name || selectedBookingDetails.coupon_code ? `(${selectedBookingDetails.offer_name || selectedBookingDetails.coupon_code})` : ''}:</span>
+                               <span className="font-bold">-₹{(parseFloat(selectedBookingDetails.gross_amount) - parseFloat(selectedBookingDetails.amount)).toFixed(2)}</span>
                              </div>
                            ) : ((selectedBookingDetails.coupon_code || selectedBookingDetails.discount_amount || selectedBookingDetails.discount > 0) && (
-                             <div className="flex justify-between w-48 text-green-600 mb-1">
-                               <span>Discount {selectedBookingDetails.coupon_code ? `(${selectedBookingDetails.coupon_code})` : ''}:</span>
-                               <span className="font-semibold">-₹{parseFloat(selectedBookingDetails.discount_amount || selectedBookingDetails.discount || 0).toFixed(2)}</span>
+                             <div className="flex justify-between w-56 text-teal-700 mb-1">
+                               <span className="font-semibold opacity-80">Discount {selectedBookingDetails.coupon_code ? `(${selectedBookingDetails.coupon_code})` : ''}:</span>
+                               <span className="font-bold">-₹{parseFloat(selectedBookingDetails.discount_amount || selectedBookingDetails.discount || 0).toFixed(2)}</span>
                              </div>
                            ))}
 
-                           <div className="flex justify-between w-48 text-gray-800 font-bold border-t border-gray-200 pt-2 mt-1">
+                           <div className="flex justify-between w-56 text-slate-900 font-black border-t border-white/50 pt-3 mt-2">
                              <span>Final Price:</span>
-                             <span className="text-[#00acc1] text-lg">₹{parseFloat(selectedBookingDetails.amount || selectedBookingDetails.gross_amount || selectedBookingDetails.services.reduce((acc, svc) => acc + (parseFloat(svc.netPayable) || 0), 0)).toFixed(2)}</span>
+                             <span className="text-[#00acc1] text-xl drop-shadow-sm">₹{parseFloat(selectedBookingDetails.amount || selectedBookingDetails.gross_amount || selectedBookingDetails.services.reduce((acc, svc) => acc + (parseFloat(svc.netPayable) || 0), 0)).toFixed(2)}</span>
                            </div>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-500 italic">No services listed.</p>
+                      <p className="text-slate-600 font-medium italic">No services listed.</p>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-red-500 font-semibold">Failed to load details.</div>
+                <div className="text-center text-red-600 font-semibold bg-white/40 p-4 rounded-xl border border-white/50">
+                  Failed to load details.
+                </div>
               )}
               
-              <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+              <div className="mt-8 pt-4 border-t border-white/50 flex justify-end">
                 <button 
                   onClick={() => setShowDetailsModal(false)} 
-                  className="px-6 py-2 bg-gray-100 text-gray-700 font-bold rounded hover:bg-gray-200 transition-colors uppercase cursor-pointer"
+                  className="px-8 py-2.5 bg-white/40 backdrop-blur-sm border border-white/80 text-slate-800 font-black rounded-xl hover:bg-white/60 hover:shadow-lg transition-all duration-300 uppercase tracking-wider shadow-sm"
                 >
                   Close
                 </button>

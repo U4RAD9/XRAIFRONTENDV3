@@ -55,6 +55,7 @@ function Navbar() {
               <NavLink to="/corporate" className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Corporate</NavLink>
               <NavLink to="/services" className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Services</NavLink>
               <NavLink to="/partners" className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Partners</NavLink>
+              <NavLink to="/media-and-gallery" className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Media and Gallery</NavLink>
               <NavLink to="/contact-us" className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Contact Us</NavLink>
             </div>
 
@@ -95,6 +96,7 @@ function Navbar() {
           <NavLink to="/corporate" onClick={closeSidebar} className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Corporate</NavLink>
           <NavLink to="/services" onClick={closeSidebar} className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Services</NavLink>
           <NavLink to="/partners" onClick={closeSidebar} className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Partners</NavLink>
+          <NavLink to="/media-and-gallery" onClick={closeSidebar} className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Media and Gallery</NavLink>
           <NavLink to="/contact-us" onClick={closeSidebar} className={({ isActive }) => isActive ? "text-[#00acc1]" : "hover:text-[#00acc1]"}>Contact Us</NavLink>
           
           <hr className="border-gray-100 my-4" />

@@ -48,7 +48,14 @@ const BookingMapTracking = ({ bookingId, onClose }) => {
       }
     };
 
+    // Initial fetch
     fetchTrackingData();
+
+    // Set up polling every 10 seconds
+    const intervalId = setInterval(fetchTrackingData, 10000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, [bookingId]);
 
   // Extract coordinates for Polyline

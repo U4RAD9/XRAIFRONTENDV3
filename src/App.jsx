@@ -24,6 +24,7 @@ import About from './pages/About';
 import ContactUs from './pages/ContactUs';
 import Services from './pages/Services';
 import Partners from './pages/Partners';
+import MediaAndGallery from './pages/MediaAndGallery';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import AdminLocations from './employee/pages/AdminLocations';
@@ -76,6 +77,7 @@ function App() {
             <Route path="contact-us" element={<ContactUs />} />
             <Route path="services" element={<Services />} />
             <Route path="partners" element={<Partners />} />
+            <Route path="media-and-gallery" element={<MediaAndGallery />} />
             <Route path="terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="login" element={<Login />} />

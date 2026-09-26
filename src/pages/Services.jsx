@@ -7,7 +7,7 @@ const staticServices = [
     description: "X-rays are a type of radiation that when directed at a person's body creates pictures of the inside of their body. Your doctor may prescribe an X-ray for multiple health conditions – bone fractures, soft tissue abnormalities, problems to do with your lungs, or for a routine checkup.",
     linkText: "Click here",
     linkAction: "to book your x-ray now or you can call us at 1800-270-2900.",
-    image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=400&h=250",
+    image: "/Content/images/xrayimage.jpeg",
   },
   {
     title: "ECG (Electrocardiography) at Home",
@@ -64,23 +64,23 @@ const TiltCard = ({ service }) => {
     const rect = cardRef.current.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
-    
+
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
 
     const mouseX = localX - width / 2;
     const mouseY = localY - height / 2;
-    
+
     // Calculate rotation: negative for X to tilt "away" from the cursor at the top, positive for Y
-    const rotateX = -(mouseY / (height / 2)) * 6; 
+    const rotateX = -(mouseY / (height / 2)) * 6;
     const rotateY = (mouseX / (width / 2)) * 6;
-    
+
     setRotation({ x: rotateX, y: rotateY });
     setCursorPos({ x: localX, y: localY });
   };
 
   const handleMouseEnter = () => setIsHovering(true);
-  
+
   const handleMouseLeave = () => {
     setIsHovering(false);
     setRotation({ x: 0, y: 0 }); // Smoothly snap back
@@ -88,7 +88,7 @@ const TiltCard = ({ service }) => {
 
   return (
     <div className="w-full h-full" style={{ perspective: '1000px' }}>
-      <div 
+      <div
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
@@ -102,7 +102,7 @@ const TiltCard = ({ service }) => {
         }}
       >
         {/* Glow effect tracking cursor */}
-        <div 
+        <div
           className="pointer-events-none absolute w-64 h-64 rounded-full bg-[#11A8A4]/15 blur-3xl transition-opacity duration-300 z-0"
           style={{
             left: cursorPos.x,
@@ -114,16 +114,16 @@ const TiltCard = ({ service }) => {
 
         {/* Highlight bar on hover */}
         <div className="absolute top-0 left-0 w-1 h-full bg-[#11A8A4] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out z-20 rounded-l-2xl"></div>
-        
+
         <div className="w-full sm:w-[40%] flex-shrink-0 relative overflow-hidden bg-slate-50 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none z-10">
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/0 to-slate-900/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
-          <img 
-            src={service.image} 
-            alt={service.title} 
-            className="w-full h-full aspect-[4/3] sm:aspect-auto object-cover transform group-hover:scale-110 group-hover:rotate-1 transition-all duration-700 ease-in-out" 
+          <img
+            src={service.image}
+            alt={service.title}
+            className="w-full h-full aspect-[4/3] sm:aspect-auto object-cover transform group-hover:scale-110 group-hover:rotate-1 transition-all duration-700 ease-in-out"
           />
         </div>
-        
+
         <div className="w-full sm:w-[60%] p-6 sm:p-8 flex flex-col justify-between relative z-10 rounded-b-2xl sm:rounded-r-2xl sm:rounded-bl-none">
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -136,14 +136,14 @@ const TiltCard = ({ service }) => {
               {service.description}
             </p>
           </div>
-          
+
           <div className="mt-auto flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-t border-slate-50 pt-5">
             <p className="text-slate-400 text-xs leading-snug xl:max-w-[180px]">
               {service.linkAction}
             </p>
-            
-            <Link 
-              to="/login" 
+
+            <Link
+              to="/login"
               className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-teal-50 text-teal-700 font-semibold text-sm hover:bg-[#11A8A4] hover:text-white hover:shadow-md hover:shadow-teal-500/30 transition-all duration-300 group/btn shrink-0"
             >
               Book Appointment
@@ -176,7 +176,7 @@ function Services() {
 
       <div className="container mx-auto px-6 mt-2">
         <h2 className="text-2xl font-medium text-center text-gray-800 mb-4">Safe and Reliable Health Services</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           {staticServices.map((service, index) => (
             <TiltCard key={index} service={service} />

@@ -269,7 +269,7 @@ function About() {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
               <img src="/images/kausik.jpeg" alt="Mr Kausik" className="w-full h-56 object-fill" />
               <div className="p-4">
-                <h4 className="font-bold text-gray-800 text-md">Kaushik</h4>
+                <h4 className="font-bold text-gray-800 text-md">Kaushik Bose</h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Key account manager ( International+ Domestic)</p>
               </div>
             </div>
