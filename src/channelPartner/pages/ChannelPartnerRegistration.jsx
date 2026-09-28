@@ -69,7 +69,7 @@ function ChannelPartnerRegistration() {
   const [headExtra, setHeadExtra] = useState({ is_primary_contact: true });
   const [members, setMembers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState(null);
+  // const [result, setResult] = useState(null);
   const [excelUploading, setExcelUploading] = useState(false);
   const excelInputRef = useRef(null);
 
@@ -155,6 +155,35 @@ function ChannelPartnerRegistration() {
     setMembers([...members, emptyMember('SON')]);
   };
   const removeMember = (idx) => setMembers(members.filter((_, i) => i !== idx));
+
+  // Reset the registration form for a new family
+  const resetRegistrationForm = () => {
+    setFamily({
+      primary_mobile: '',
+      loan_number: '',
+      address_line_1: '',
+      address_line_2: '',
+      village: '',
+      gram_panchayat: '',
+      block: '',
+      district: '',
+      state: '',
+      pincode: '',
+    });
+
+    setHead(emptyMember('HEAD'));
+
+    setHeadExtra({
+      is_primary_contact: true,
+    });
+
+    setMembers([]);
+
+    // Clear Excel file input
+    if (excelInputRef.current) {
+      excelInputRef.current.value = '';
+    }
+  };
 
   const handleExcelUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -265,6 +294,12 @@ function ChannelPartnerRegistration() {
     if (memberData.age) fd.append('age', String(memberData.age));
     fd.append('gender', memberData.gender);
     fd.append('relationship', memberData.relationship);
+    if (
+      memberData.relationship === 'HEAD' &&
+      memberData.loan_number
+    ) {
+      fd.append('loan_number', memberData.loan_number);
+    }
     if (memberData.mobile) fd.append('mobile', memberData.mobile);
     if (memberData.alternate_mobile) fd.append('alternate_mobile', memberData.alternate_mobile);
     if (memberData.email) fd.append('email', memberData.email);
@@ -290,7 +325,7 @@ function ChannelPartnerRegistration() {
     }
 
     setSubmitting(true);
-    setResult(null);
+    // setResult(null);
     try {
       // 1) Create Family - include package id to satisfy backend perform_create: package.client_id check
       if (!selectedPackage?.id) {
@@ -300,7 +335,6 @@ function ChannelPartnerRegistration() {
       const familyPayload = {
         package: Number(selectedPackage.id),
         primary_mobile: family.primary_mobile,
-        loan_number: family.loan_number,
         address_line_1: family.address_line_1,
         address_line_2: family.address_line_2,
         village: family.village,
@@ -320,7 +354,7 @@ function ChannelPartnerRegistration() {
       if (!numericFamilyId) throw new Error('Family creation did not return id');
 
       // 2) Create Family Head
-      const headFd = buildMemberFormData(numericFamilyId, { ...head, relationship: 'HEAD' }, { is_primary_contact: true });
+      const headFd = buildMemberFormData(numericFamilyId, { ...head, relationship: 'HEAD', loan_number: family.loan_number, }, { is_primary_contact: true });
       const headRes = await postWithAuthFallback(ENDPOINTS.RURAL_MEMBERS, headFd, { 'Content-Type': 'multipart/form-data' });
 
       // 3) Create Additional Members
@@ -335,16 +369,25 @@ function ChannelPartnerRegistration() {
         const r = await postWithAuthFallback(ENDPOINTS.RURAL_MEMBERS, fd, { 'Content-Type': 'multipart/form-data' });
         memberResults.push(r.data);
       }
+      // Registration successful
+      alert(
+        `Registration successful! Family ${
+          famData.family_id || famData.id
+        } created with ${1 + memberResults.length} members.`
+      );
 
-      setResult({
-        family: famData,
-        head: headRes.data,
-        members: memberResults,
-        selectedPackage,
-      });
+      // Clear form for the next registration
+      resetRegistrationForm();
+
+      // setResult({
+      //   family: famData,
+      //   head: headRes.data,
+      //   members: memberResults,
+      //   selectedPackage,
+      // });
 
       // Optionally reset form? Keep data for review
-      alert(`Registration successful! Family ${famData.family_id || famData.id} created with ${1 + memberResults.length} members.`);
+      
     } catch (err) {
       console.error(err);
       const detail = err?.response?.data;
@@ -419,10 +462,10 @@ function ChannelPartnerRegistration() {
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i className="fas fa-home text-[#11A8A4]"></i> Family Address</h3>
           <p className="text-sm text-gray-500 mt-1">These fields create the family record.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Loan Number</label>
               <input name="loan_number" value={family.loan_number} onChange={handleFamilyChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="LN-123456" />
-            </div>
+            </div> */}
             {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Primary Mobile <span className="text-red-500">*</span></label>
               <input name="primary_mobile" value={family.primary_mobile} onChange={handleFamilyChange} required className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="9876543210" />
@@ -477,6 +520,19 @@ function ChannelPartnerRegistration() {
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></label>
               <input name="last_name" value={head.last_name} onChange={handleHeadChange} required className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Loan Number
+              </label>
+
+              <input
+                name="loan_number"
+                value={family.loan_number}
+                onChange={handleFamilyChange}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]"
+                placeholder="LN-123456"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Date of Birth <span className="text-red-500">*</span></label>
@@ -699,7 +755,7 @@ function ChannelPartnerRegistration() {
         </div>
       </form>
 
-      {result && (
+      {/* {result && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
           <h3 className="text-green-800 font-bold flex items-center gap-2"><i className="fas fa-check-circle"></i> Registration Complete</h3>
           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -710,7 +766,7 @@ function ChannelPartnerRegistration() {
           </div>
           <pre className="mt-4 bg-white border border-green-100 rounded-xl p-4 text-xs overflow-auto max-h-60">{JSON.stringify(result, null, 2)}</pre>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
