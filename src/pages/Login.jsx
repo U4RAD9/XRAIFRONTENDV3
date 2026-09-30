@@ -346,7 +346,9 @@ function Login() {
           <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-cyan-300 opacity-20 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 flex flex-col items-center space-y-6">
-            <img src="/Content/xraiLogo.png" alt="XRAI Digital Logo" className="h-24 object-contain mb-2 drop-shadow-lg" onError={(e) => { e.target.src = '/xrailogo.svg' }} />
+            <div className="bg-white px-6 py-4 rounded-2xl shadow-xl inline-block mb-2">
+               <img src="https://xraidigital.com/Content/images/logo.png" alt="XRAI Digital Logo" className="h-14 object-contain" />
+            </div>
             
             <h2 className="text-3xl font-extrabold tracking-tight">Welcome to XRAI Digital</h2>
             <p className="text-lg text-cyan-50 font-medium max-w-md mx-auto leading-relaxed">
