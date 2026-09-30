@@ -209,8 +209,10 @@ function AdminDashboard() {
                   <td colSpan="8" className="py-12 text-center text-gray-500 font-semibold">No bookings found.</td>
                 </tr>
               ) : (
-                bookings.map((booking, idx) => (
-                  <tr key={idx} className="hover:bg-blue-50/50 transition duration-150">
+                bookings.map((booking, idx) => {
+                  const isUnassigned = !booking.technician || booking.technician === 'Not Assigned' || booking.technician === 'Unassigned' || booking.technician === '-' || booking.technician === 'N/A' || (typeof booking.technician === 'string' && booking.technician.trim() === '');
+                  return (
+                  <tr key={idx} className={`transition duration-150 ${isUnassigned ? 'bg-[#00acc1]/15 hover:bg-[#00acc1]/25 border-l-4 border-[#00acc1]' : 'hover:bg-blue-50/50 border-l-4 border-transparent'}`}>
                     <td className="py-4 px-6 font-semibold text-[#00acc1]">#{booking.id}</td>
                     <td className="py-4 px-6 text-sm">{booking.date} {booking.time}</td>
                     <td className="py-4 px-6">
@@ -222,7 +224,13 @@ function AdminDashboard() {
                       <div className="font-bold text-gray-800">₹{booking.amount}</div>
                       <div className="text-xs text-gray-500 mt-1">{booking.paymentMethod}</div>
                     </td>
-                    <td className="py-4 px-6 font-semibold">{booking.technician}</td>
+                    <td className="py-4 px-6 font-semibold">
+                      {isUnassigned ? (
+                        <span className="text-white bg-[#00acc1] px-2 py-1 rounded-md text-xs font-bold shadow-sm flex inline-flex items-center gap-1"><i className="fas fa-exclamation-circle"></i> Unassigned</span>
+                      ) : (
+                        booking.technician
+                      )}
+                    </td>
                     <td className="py-4 px-6">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         booking.status === 'Booked' ? 'bg-blue-100 text-blue-700' : 
@@ -243,7 +251,7 @@ function AdminDashboard() {
                       </div>
                     </td>
                   </tr>
-                ))
+                )})
               )}
             </tbody>
           </table>

@@ -191,8 +191,10 @@ function AdminBookings() {
                   </td>
                 </tr>
               ) : (
-                filteredBookings.map(booking => (
-                  <tr key={booking.id} className="hover:bg-blue-50 transition-colors duration-150">
+                filteredBookings.map(booking => {
+                  const isUnassigned = !booking.technician || booking.technician === 'Not Assigned' || booking.technician === 'Unassigned' || booking.technician === '-' || booking.technician === 'N/A' || (typeof booking.technician === 'string' && booking.technician.trim() === '');
+                  return (
+                  <tr key={booking.id} className={`transition-colors duration-150 ${isUnassigned ? 'bg-[#00acc1]/15 hover:bg-[#00acc1]/25 border-l-4 border-[#00acc1]' : 'hover:bg-blue-50 border-l-4 border-transparent'}`}>
                     <td className="py-3 px-4 text-center">{booking.patientId}</td>
                     <td className="py-3 px-4 text-center">{booking.phoneNo}</td>
                     <td className="py-3 px-4 text-center">{booking.patientName}</td>
@@ -207,7 +209,13 @@ function AdminBookings() {
                         {booking.paymentStatus}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-center">{booking.technician}</td>
+                    <td className="py-3 px-4 text-center">
+                      {isUnassigned ? (
+                        <span className="text-white bg-[#00acc1] px-2 py-1 rounded-md text-xs font-bold shadow-sm flex inline-flex items-center gap-1 justify-center"><i className="fas fa-exclamation-circle"></i> Unassigned</span>
+                      ) : (
+                        booking.technician
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-center">{booking.remarks}</td>
                     <td className="py-3 px-4 text-center">
                       <button 
@@ -251,7 +259,7 @@ function AdminBookings() {
                       </button>
                     </td>
                   </tr>
-                ))
+                )})
               )}
             </tbody>
           </table>

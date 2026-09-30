@@ -2,6 +2,8 @@ export const ENDPOINTS = {
   // Auth
   CAMPMANAGER_LOGIN: 'https://cbackend.xraidigital.com/api/campmanager/login/',
   LOGIN: '/auth/login',
+  SEND_LOGIN_OTP: '/auth/send_login_otp',
+  LOGIN_WITH_OTP: '/auth/login_with_otp',
   FORGET_MPIN: '/auth/forget_mpin',
   VERIFY_OTP: '/auth/verify_otp',
   UPDATE_PASSWORD: '/auth/update_password',

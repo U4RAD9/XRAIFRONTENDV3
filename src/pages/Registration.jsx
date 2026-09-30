@@ -12,6 +12,8 @@ function Registration() {
     Age: ''
   });
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
 
   const navigate = useNavigate();
 
@@ -19,7 +21,7 @@ function Registration() {
     setFormData({...formData, [e.target.name]: e.target.value});
   };
 
-  const handleSignup = async (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!formData.MobileNumber || !formData.MPIN) {
       alert("Please enter mobile number and password.");
@@ -28,15 +30,46 @@ function Registration() {
 
     setLoading(true);
     try {
-      const signupRes = await axiosInstance.post('/auth/signup', formData);
-      
-      if (signupRes.data.Success === true) {
-        alert("Registration successful! Please login.");
-        navigate('/login');
+      const res = await axiosInstance.post('/auth/send_otp', { mobile: formData.MobileNumber });
+      if (res.data.StatusCode === true) {
+        alert(res.data.Message);
+        setOtpSent(true);
       } else {
-        alert(signupRes.data.Message);
+        alert(res.data.Message || "Error sending OTP");
       }
     } catch (err) {
+      console.error(err);
+      alert("Error sending OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyAndSignup = async (e) => {
+    e.preventDefault();
+    if (!otp) {
+      alert("Please enter OTP.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const verifyRes = await axiosInstance.post('/auth/verify_otp', { mobile: formData.MobileNumber, otp });
+      
+      if (verifyRes.data === true) {
+        const signupRes = await axiosInstance.post('/auth/signup', formData);
+        
+        if (signupRes.data.Success === true) {
+          alert("Registration successful! Please login.");
+          navigate('/login');
+        } else {
+          alert(signupRes.data.Message);
+        }
+      } else {
+        alert("Invalid OTP.");
+      }
+    } catch (err) {
+      console.error(err);
       alert("Error during registration.");
     } finally {
       setLoading(false);
@@ -93,9 +126,22 @@ function Registration() {
               </div>
             </div>
 
-            <button type="button" onClick={handleSignup} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
-              {loading ? 'Registering...' : 'Sign up'}
-            </button>
+            {otpSent && (
+              <div className="flex flex-col mt-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Enter OTP *</label>
+                <input type="text" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full border border-[#b2ebf2] rounded-xl px-4 py-3 focus:outline-none focus:border-[#00acc1]" />
+              </div>
+            )}
+
+            {!otpSent ? (
+              <button type="button" onClick={handleSendOtp} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
+                {loading ? 'Sending OTP...' : 'Send OTP'}
+              </button>
+            ) : (
+              <button type="button" onClick={handleVerifyAndSignup} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
+                {loading ? 'Registering...' : 'Verify OTP & Sign up'}
+              </button>
+            )}
             
             <p className="text-center text-sm text-gray-600 mt-4">
               Already have an account? <Link to="/login" className="text-[#00acc1] font-bold hover:underline">Log in</Link>
@@ -103,8 +149,20 @@ function Registration() {
           </form>
         </div>
 
-        {/* Right Side: Image */}
-        <div className="hidden md:block w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('https://xraidigital.com/Admin_Content/Images/CompanyLogo/Logo.jpg')" }}>
+        {/* Right Side: Welcome Banner */}
+        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#00acc1] to-blue-600 p-12 flex-col justify-center items-center text-white text-center relative overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-cyan-300 opacity-20 rounded-full blur-3xl"></div>
+          
+          <div className="relative z-10 flex flex-col items-center space-y-6">
+            <img src="/Content/xraiLogo.png" alt="XRAI Digital Logo" className="h-24 object-contain mb-2 drop-shadow-lg" onError={(e) => { e.target.src = '/xrailogo.svg' }} />
+            
+            <h2 className="text-3xl font-extrabold tracking-tight">Welcome to XRAI Digital</h2>
+            <p className="text-lg text-cyan-50 font-medium max-w-md mx-auto leading-relaxed">
+              Pioneering the future of digital healthcare. We seamlessly connect advanced diagnostic services with patients everywhere—empowering you with fast, secure, and accessible health management tools.
+            </p>
+          </div>
         </div>
       </div>
     </div>
