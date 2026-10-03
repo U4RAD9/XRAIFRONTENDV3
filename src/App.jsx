@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import axios from 'axios';
 import Layout from './components/Layout';
+import SessionTimeoutHandler from './components/SessionTimeoutHandler';
 import AdminLayout from './employee/components/AdminLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -68,6 +69,7 @@ function App() {
   return (
     <HelmetProvider>
       <Router>
+        <SessionTimeoutHandler />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />

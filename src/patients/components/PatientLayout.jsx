@@ -10,7 +10,7 @@ function PatientLayout() {
   useEffect(() => {
     const userType = sessionStorage.getItem('UserType');
     if (userType !== 'Patient') {
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
     const storedName = sessionStorage.getItem('FullName') || sessionStorage.getItem('UserName') || 'Patient';
@@ -22,7 +22,7 @@ function PatientLayout() {
     sessionStorage.removeItem('FullName');
     sessionStorage.removeItem('UserType');
     sessionStorage.removeItem('UserID');
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (

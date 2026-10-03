@@ -12,7 +12,7 @@ function PartnerLayout() {
     /*
     const userType = sessionStorage.getItem('UserType');
     if (userType !== 'Partner') {
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
     */
@@ -25,7 +25,7 @@ function PartnerLayout() {
     sessionStorage.removeItem('FullName');
     sessionStorage.removeItem('UserType');
     sessionStorage.removeItem('UserID');
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (

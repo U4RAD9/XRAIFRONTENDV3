@@ -223,7 +223,7 @@ function Login() {
   };
 
   const handleResetPassword = async () => {
-    if (!resetData.email || !resetData.newPassword || !resetData.confirmPassword) {
+    if (!resetData.newPassword || !resetData.confirmPassword) {
       alert("All fields are required.");
       return;
     }
@@ -235,7 +235,6 @@ function Login() {
     try {
       const res = await axiosInstance.post(ENDPOINTS.UPDATE_PASSWORD, {
         mobile: formData.MobileNumber,
-        email: resetData.email,
         new_password: resetData.newPassword
       });
       if (res.data.Success) {
@@ -378,7 +377,6 @@ function Login() {
               </>
             ) : (
               <div className="flex flex-col gap-4">
-                <input type="email" placeholder="Old Email" value={resetData.email} onChange={(e) => setResetData({ ...resetData, email: e.target.value })} className="w-full border border-[#b2ebf2] rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" />
                 <input type="password" placeholder="New Password" value={resetData.newPassword} onChange={(e) => setResetData({ ...resetData, newPassword: e.target.value })} className="w-full border border-[#b2ebf2] rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" />
                 <input type="password" placeholder="Verify Password" value={resetData.confirmPassword} onChange={(e) => setResetData({ ...resetData, confirmPassword: e.target.value })} className="w-full border border-[#b2ebf2] rounded-lg px-4 py-2 focus:outline-none focus:border-[#00acc1]" />
                 <button type="button" onClick={handleResetPassword} disabled={otpLoading} className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold px-6 py-2 rounded-lg hover:shadow-lg transition-all">

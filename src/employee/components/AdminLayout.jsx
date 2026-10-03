@@ -8,7 +8,7 @@ function AdminLayout() {
   useEffect(() => {
     const userType = sessionStorage.getItem('UserType');
     if (userType !== 'Admin') {
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [navigate]);
 
@@ -17,7 +17,7 @@ function AdminLayout() {
     sessionStorage.removeItem('FullName');
     sessionStorage.removeItem('UserType');
     sessionStorage.removeItem('UserID');
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (

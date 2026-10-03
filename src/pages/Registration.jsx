@@ -14,6 +14,8 @@ function Registration() {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
+  const [consent1, setConsent1] = useState(false);
+  const [consent2, setConsent2] = useState(false);
 
   const navigate = useNavigate();
 
@@ -25,6 +27,11 @@ function Registration() {
     e.preventDefault();
     if (!formData.MobileNumber || !formData.MPIN) {
       alert("Please enter mobile number and password.");
+      return;
+    }
+
+    if (!consent1 || !consent2) {
+      alert("Please accept the DPDP Act consent and Privacy Policy to proceed.");
       return;
     }
 
@@ -61,7 +68,7 @@ function Registration() {
         
         if (signupRes.data.Success === true) {
           alert("Registration successful! Please login.");
-          navigate('/login');
+          navigate('/login', { replace: true });
         } else {
           alert(signupRes.data.Message);
         }
@@ -133,8 +140,21 @@ function Registration() {
               </div>
             )}
 
+            {!otpSent && (
+              <div className="flex flex-col space-y-3 mt-6 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input type="checkbox" checked={consent1} onChange={(e) => setConsent1(e.target.checked)} className="mt-1 w-4 h-4 text-cyan-600 rounded border-gray-300 focus:ring-cyan-500" />
+                  <span className="leading-tight">I agree to the Terms of Service and Privacy Policy.</span>
+                </label>
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input type="checkbox" checked={consent2} onChange={(e) => setConsent2(e.target.checked)} className="mt-1 w-4 h-4 text-cyan-600 rounded border-gray-300 focus:ring-cyan-500" />
+                  <span className="leading-tight">I explicitly consent to the collection, processing, and storage of my personal and health data in accordance with the Digital Personal Data Protection (DPDP) Act, 2023.</span>
+                </label>
+              </div>
+            )}
+
             {!otpSent ? (
-              <button type="button" onClick={handleSendOtp} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
+              <button type="button" onClick={handleSendOtp} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-4 hover:shadow-lg transition-all">
                 {loading ? 'Sending OTP...' : 'Send OTP'}
               </button>
             ) : (
