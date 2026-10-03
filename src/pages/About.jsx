@@ -205,15 +205,19 @@ function About() {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
               <img src="/images/pooja.png" alt="Pooja Singh" className="w-full h-56 object-fill" />
               <div className="p-4">
-                <h4 className="font-bold text-gray-800 text-md">Pooja Singh</h4>
+                <h4 className="font-bold text-gray-800 text-md">
+                  <a href="https://www.linkedin.com/in/pooja-singh-810a7b237/" target="_blank" rel="noopener noreferrer" className="hover:text-[#11A8A4] transition-colors">Pooja Singh</a>
+                </h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Manager - Product and Pre-Sales</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
               <img src="/images/aradhna.png" alt="Aradhana Dutt" className="w-full h-56 object-fill" />
               <div className="p-4">
-                <h4 className="font-bold text-gray-800 text-md">Aradhana Dutt</h4>
-                <p className="text-xs text-[#11A8A4] font-semibold mt-1">Captain - New Initiatives</p>
+                <h4 className="font-bold text-gray-800 text-md">
+                  <a href="https://www.linkedin.com/in/aradhana-datt-7540b18?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="hover:text-[#11A8A4] transition-colors">Aradhana Dutt</a>
+                </h4>
+                <p className="text-xs text-[#11A8A4] font-semibold mt-1">Director - Business Development</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
@@ -257,13 +261,6 @@ function About() {
               <div className="p-4">
                 <h4 className="font-bold text-gray-800 text-md">Shalini Chauhan</h4>
                 <p className="text-xs text-[#11A8A4] font-semibold mt-1">Camp Coordinator</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
-              <img src="/images/rajendra.jpeg" alt="Rajendra" className="w-full h-56 object-fill" />
-              <div className="p-4">
-                <h4 className="font-bold text-gray-800 text-md">Rajendra</h4>
-                <p className="text-xs text-[#11A8A4] font-semibold mt-1">Regional sales manager</p>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden w-60 text-center transform transition hover:scale-105 hover:cursor-pointer">
