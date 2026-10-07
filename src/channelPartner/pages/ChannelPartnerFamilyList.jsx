@@ -15,6 +15,7 @@ function ChannelPartnerFamilyList() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [editingMember, setEditingMember] = useState(null);
+  const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [savingMember, setSavingMember] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -60,6 +61,63 @@ function ChannelPartnerFamilyList() {
       }
       throw e;
     }
+  };
+
+  const formatAmount = (amount) => {
+    const value = Number(amount || 0);
+
+    return value.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const formatDateTime = (value) => {
+    if (!value) return '-';
+
+    try {
+      return new Date(value).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      });
+    } catch {
+      return value;
+    }
+  };
+
+  const getWalletStatus = (family) => {
+    if (!family?.is_finance_activated) {
+      return {
+        label: 'Not Activated',
+        className: 'bg-gray-100 text-gray-700',
+      };
+    }
+
+    if (family?.payment_status === 'PAID') {
+      return {
+        label: 'Paid',
+        className: 'bg-green-100 text-green-700',
+      };
+    }
+
+    if (family?.wallet_payment?.wallet_credited) {
+      return {
+        label: 'Wallet Credited / Payment Pending',
+        className: 'bg-yellow-100 text-yellow-700',
+      };
+    }
+
+    if (family?.is_finance_activated) {
+      return {
+        label: 'Activated',
+        className: 'bg-blue-100 text-blue-700',
+      };
+    }
+
+    return {
+      label: 'Pending',
+      className: 'bg-gray-100 text-gray-700',
+    };
   };
 
   const fetchFamilies = async () => {
@@ -110,6 +168,17 @@ function ChannelPartnerFamilyList() {
       return true;
     });
   }, [families, filterPackage, filterDate, filterStatus, search]);
+
+  const walletSummary = useMemo(() => {
+    const wallet = families.find((family) => family?.wallet)?.wallet;
+
+    return {
+      balance: wallet?.balance || 0,
+      total_credited: wallet?.total_credited || 0,
+      total_debited: wallet?.total_debited || 0,
+      is_active: wallet?.is_active ?? false,
+    };
+  }, [families]);
 
   // Member CRUD helpers
   const openEdit = (member) => {
@@ -272,6 +341,107 @@ function ChannelPartnerFamilyList() {
         </button>
       </div>
 
+      {/* TOTAL CLIENT WALLET */}
+      <div className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
+        <div className="bg-[#233560] text-white px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <i className="fas fa-wallet"></i>
+              Total Wallet
+            </h3>
+
+            <p className="text-xs text-white/70 mt-1">
+              Client-level wallet balance for all registered families
+            </p>
+          </div>
+
+          <span
+            className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+              walletSummary.is_active
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
+            {walletSummary.is_active ? 'Wallet Active' : 'Wallet Inactive'}
+          </span>
+        </div>
+
+        <div className="p-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            {/* CURRENT BALANCE */}
+            <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-blue-700 uppercase">
+                    Total Wallet Balance
+                  </p>
+
+                  <p className="text-3xl font-extrabold text-blue-800 mt-2">
+                    ₹{formatAmount(walletSummary.balance)}
+                  </p>
+                </div>
+
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <i className="fas fa-wallet text-blue-600 text-xl"></i>
+                </div>
+              </div>
+
+              <p className="text-xs text-blue-600 mt-2">
+                Current available client wallet balance
+              </p>
+            </div>
+
+            {/* TOTAL CREDITED */}
+            <div className="rounded-xl border border-green-100 bg-green-50 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-green-700 uppercase">
+                    Total Credited
+                  </p>
+
+                  <p className="text-3xl font-extrabold text-green-800 mt-2">
+                    ₹{formatAmount(walletSummary.total_credited)}
+                  </p>
+                </div>
+
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <i className="fas fa-arrow-down text-green-600 text-xl"></i>
+                </div>
+              </div>
+
+              <p className="text-xs text-green-600 mt-2">
+                Total amount credited to wallet
+              </p>
+            </div>
+
+            {/* TOTAL DEBITED */}
+            <div className="rounded-xl border border-red-100 bg-red-50 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-red-700 uppercase">
+                    Total Debited
+                  </p>
+
+                  <p className="text-3xl font-extrabold text-red-800 mt-2">
+                    ₹{formatAmount(walletSummary.total_debited)}
+                  </p>
+                </div>
+
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <i className="fas fa-arrow-up text-red-600 text-xl"></i>
+                </div>
+              </div>
+
+              <p className="text-xs text-red-600 mt-2">
+                Total amount debited from wallet
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl shadow border border-gray-100 p-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
@@ -388,58 +558,640 @@ function ChannelPartnerFamilyList() {
       )}
 
       {/* Family Detail Modal with Member CRUD */}
+      {/* Family Detail Modal with Member CRUD + Wallet */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={()=>setSelected(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
-              <h3 className="font-bold text-gray-800">{selected.family_id} – {selected.package_name}</h3>
-              <button onClick={()=>setSelected(null)} className="cursor-pointer w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"><i className="fas fa-times text-gray-600"></i></button>
-            </div>
-            <div className="p-6 space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <div><span className="text-gray-500">Package:</span> <span className="font-semibold">#{selected.package} {selected.package_name} ₹{selected.package_price}</span></div>
-                <div><span className="text-gray-500">Mobile:</span> <span className="font-mono font-semibold">{selected.primary_mobile}</span></div>
-                <div className="col-span-2"><span className="text-gray-500">Address:</span> <span className="font-semibold">{[selected.address_line_1, selected.address_line_2, selected.village, selected.gram_panchayat, selected.block, selected.district, selected.state, selected.pincode].filter(Boolean).join(', ')}</span></div>
-                <div><span className="text-gray-500">Status:</span> {selected.is_active ? <span className="text-green-600 font-bold">Active</span> : <span className="text-red-600 font-bold">Inactive</span>}</div>
-                <div><span className="text-gray-500">Members:</span> <span className="font-bold">{selected.members?.length || 0}/3</span></div>
-                <div><span className="text-gray-500">Created:</span> {selected.created_at ? new Date(selected.created_at).toLocaleString() : '-'}</div>
-              </div>
-              {(selected.members?.length || 0) < 3 && (
-                <button onClick={() => setShowAddMember(true)} className="cursor-pointer w-full bg-[#11A8A4] hover:bg-[#0e8c89] text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2">
-                  <i className="fas fa-user-plus"></i> Add Member
-                </button>
-              )}
-              {(selected.members?.length || 0) >= 3 && (
-                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">Maximum 3 members reached for this family.</p>
-              )}
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* HEADER */}
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h3 className="font-bold text-gray-800 text-lg">
+                  {selected.family_id} – {selected.package_name}
+                </h3>
 
-              <div className="border-t pt-4">
-                <h4 className="font-bold text-gray-800 mb-2">Members</h4>
-                {selected.members?.length ? (
-                  <div className="space-y-3">
-                    {selected.members.map(m=> (
-                      <div key={m.id} className="border border-gray-200 rounded-xl p-3 flex gap-3">
-                        {m.photo ? <img src={m.photo} alt={m.full_name} className="w-12 h-12 rounded-full object-cover border"/> : <div className="w-12 h-12 rounded-full bg-[#11A8A4]/10 flex items-center justify-center text-[#11A8A4] font-bold">{m.first_name?.[0]}</div>}
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-gray-800 truncate">{m.full_name} <span className="text-xs font-normal text-gray-500">({m.relationship})</span></p>
-                          <p className="text-xs text-gray-600">{m.gender} • {m.date_of_birth} • {m.age}y • {m.mobile || '-'} {m.email ? `• ${m.email}`:''}</p>
-                          <p className="text-xs text-gray-500">{m.blood_group} • {m.marital_status} • {m.occupation || ''}</p>
-                          <div className="flex gap-2 mt-2">
-                            <button onClick={()=>openEdit(m)} className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold border border-blue-200"><i className="fas fa-edit mr-1"></i>Edit</button>
-                            <button onClick={()=>deleteMember(m)} className="cursor-pointer text-xs bg-red-50 hover:bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-semibold border border-red-200"><i className="fas fa-trash mr-1"></i>Delete</button>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  <span className="text-xs text-gray-500">
+                    Package #{selected.package}
+                  </span>
+
+                  {selected.is_finance_activated ? (
+                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                      Finance Activated
+                    </span>
+                  ) : (
+                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                      Not Activated
+                    </span>
+                  )}
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                      selected.payment_status === 'PAID'
+                        ? 'bg-green-100 text-green-700'
+                        : selected.payment_status === 'REFUNDED'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {selected.payment_status || 'PENDING'}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelected(null)}
+                className="cursor-pointer w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+              >
+                <i className="fas fa-times text-gray-600"></i>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 text-sm">
+
+              {/* BASIC FAMILY INFORMATION */}
+              <div>
+                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <i className="fas fa-users text-[#11A8A4]"></i>
+                  Family Information
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 rounded-xl p-4">
+                  <div>
+                    <span className="text-gray-500">Package:</span>
+                    <span className="font-semibold ml-1">
+                      #{selected.package} {selected.package_name}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-500">Package Price:</span>
+                    <span className="font-semibold ml-1">
+                      ₹{formatAmount(selected.package_price)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-500">Mobile:</span>
+                    <span className="font-mono font-semibold ml-1">
+                      {selected.primary_mobile || '-'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-500">Members:</span>
+                    <span className="font-bold ml-1">
+                      {selected.members?.length || 0}/3
+                    </span>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <span className="text-gray-500">Address:</span>
+                    <span className="font-semibold ml-1">
+                      {[
+                        selected.address_line_1,
+                        selected.address_line_2,
+                        selected.village,
+                        selected.gram_panchayat,
+                        selected.block,
+                        selected.district,
+                        selected.state,
+                        selected.pincode,
+                      ]
+                        .filter(Boolean)
+                        .join(', ') || '-'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-500">Created:</span>
+                    <span className="font-semibold ml-1">
+                      {formatDateTime(selected.created_at)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-500">Family Status:</span>
+
+                    {selected.is_active ? (
+                      <span className="text-green-600 font-bold ml-1">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="text-red-600 font-bold ml-1">
+                        Inactive
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* WALLET SECTION */}
+              <div className="border border-gray-200 rounded-2xl overflow-hidden">
+
+                <div className="bg-[#233560] text-white px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-lg flex items-center gap-2">
+                      <i className="fas fa-wallet"></i>
+                      Wallet & Payment
+                    </h4>
+
+                    <p className="text-xs text-white/70 mt-1">
+                      Wallet is maintained at client level. This family shows
+                      its activation credit and payment information.
+                    </p>
+                  </div>
+
+                  {(() => {
+                    const status = getWalletStatus(selected);
+
+                    return (
+                      <span
+                        className={`${status.className} px-3 py-1.5 rounded-full text-xs font-bold`}
+                      >
+                        {status.label}
+                      </span>
+                    );
+                  })()}
+                </div>
+
+                <div className="p-5 space-y-5">
+
+                  {/* WALLET BALANCE CARDS */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    {/* CURRENT BALANCE */}
+                    <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-blue-700 uppercase">
+                          Current Balance
+                        </p>
+
+                        <i className="fas fa-wallet text-blue-500"></i>
+                      </div>
+
+                      <p className="text-2xl font-extrabold text-blue-800 mt-2">
+                        ₹{formatAmount(selected.wallet?.balance)}
+                      </p>
+
+                      <p className="text-xs text-blue-600 mt-1">
+                        Current client wallet balance
+                      </p>
+                    </div>
+
+                    {/* TOTAL CREDITED */}
+                    <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-green-700 uppercase">
+                          Total Credited
+                        </p>
+
+                        <i className="fas fa-arrow-down text-green-500"></i>
+                      </div>
+
+                      <p className="text-2xl font-extrabold text-green-800 mt-2">
+                        ₹{formatAmount(selected.wallet?.total_credited)}
+                      </p>
+
+                      <p className="text-xs text-green-600 mt-1">
+                        Amount credited to wallet
+                      </p>
+                    </div>
+
+                    {/* TOTAL DEBITED */}
+                    <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-red-700 uppercase">
+                          Total Debited
+                        </p>
+
+                        <i className="fas fa-arrow-up text-red-500"></i>
+                      </div>
+
+                      <p className="text-2xl font-extrabold text-red-800 mt-2">
+                        ₹{formatAmount(selected.wallet?.total_debited)}
+                      </p>
+
+                      <p className="text-xs text-red-600 mt-1">
+                        Amount debited from wallet
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* FAMILY WALLET TRANSACTION INFORMATION */}
+                  <div className="border border-gray-200 rounded-xl">
+
+                    <div className="px-4 py-3 bg-gray-50 border-b">
+                      <h5 className="font-bold text-gray-800">
+                        Family Wallet Transaction
+                      </h5>
+                    </div>
+
+                    <div className="p-4">
+
+                      {selected.wallet_payment ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                          {/* CREDIT */}
+                          <div className="border border-green-200 bg-green-50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                <i className="fas fa-arrow-down text-green-600"></i>
+                              </div>
+
+                              <div>
+                                <p className="font-bold text-green-800">
+                                  Wallet Credit
+                                </p>
+                                <p className="text-xs text-green-600">
+                                  Family activation
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 text-xs">
+
+                              <div className="flex justify-between gap-3">
+                                <span className="text-gray-500">
+                                  Status
+                                </span>
+
+                                <span
+                                  className={
+                                    selected.wallet_payment.wallet_credited
+                                      ? 'font-bold text-green-700'
+                                      : 'font-bold text-gray-500'
+                                  }
+                                >
+                                  {selected.wallet_payment.wallet_credited
+                                    ? 'Credited'
+                                    : 'Not Credited'}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between gap-3">
+                                <span className="text-gray-500">
+                                  Amount
+                                </span>
+
+                                <span className="font-bold text-gray-800">
+                                  ₹
+                                  {formatAmount(
+                                    selected.wallet_payment.wallet_credit_amount
+                                  )}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between gap-3">
+                                <span className="text-gray-500">
+                                  Date
+                                </span>
+
+                                <span className="font-semibold text-gray-700 text-right">
+                                  {formatDateTime(
+                                    selected.wallet_payment.wallet_credited_at
+                                  )}
+                                </span>
+                              </div>
+
+                              <div>
+                                <p className="text-gray-500 mb-1">
+                                  Wallet Transaction ID
+                                </p>
+
+                                <p className="font-mono text-[11px] break-all bg-white border rounded-lg px-2 py-1">
+                                  {selected.wallet_payment.wallet_credit_transaction_id ||
+                                    '-'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* DEBIT */}
+                          <div className="border border-red-200 bg-red-50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                <i className="fas fa-arrow-up text-red-600"></i>
+                              </div>
+
+                              <div>
+                                <p className="font-bold text-red-800">
+                                  Wallet Debit
+                                </p>
+                                <p className="text-xs text-red-600">
+                                  Family payment
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 text-xs">
+
+                              <div className="flex justify-between gap-3">
+                                <span className="text-gray-500">
+                                  Status
+                                </span>
+
+                                <span
+                                  className={
+                                    selected.wallet_payment.wallet_debited
+                                      ? 'font-bold text-green-700'
+                                      : 'font-bold text-yellow-700'
+                                  }
+                                >
+                                  {selected.wallet_payment.wallet_debited
+                                    ? 'Debited'
+                                    : 'Pending'}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between gap-3">
+                                <span className="text-gray-500">
+                                  Amount
+                                </span>
+
+                                <span className="font-bold text-gray-800">
+                                  {selected.wallet_payment.wallet_debit_amount
+                                    ? `₹${formatAmount(
+                                        selected.wallet_payment.wallet_debit_amount
+                                      )}`
+                                    : '-'}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between gap-3">
+                                <span className="text-gray-500">
+                                  Date
+                                </span>
+
+                                <span className="font-semibold text-gray-700 text-right">
+                                  {formatDateTime(
+                                    selected.wallet_payment.wallet_debited_at
+                                  )}
+                                </span>
+                              </div>
+
+                              <div>
+                                <p className="text-gray-500 mb-1">
+                                  Wallet Transaction ID
+                                </p>
+
+                                <p className="font-mono text-[11px] break-all bg-white border rounded-lg px-2 py-1">
+                                  {selected.wallet_payment.wallet_debit_transaction_id ||
+                                    '-'}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <span className={`self-start px-2 py-1 rounded-full text-xs font-bold ${m.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{m.is_active ? 'Active' : 'Inactive'}</span>
+                      ) : (
+                        <div className="rounded-xl bg-yellow-50 border border-yellow-200 p-4">
+                          <div className="flex gap-3">
+                            <i className="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+
+                            <div>
+                              <p className="font-bold text-yellow-800">
+                                Wallet payment record not available
+                              </p>
+
+                              <p className="text-xs text-yellow-700 mt-1">
+                                This family has wallet information, but no
+                                FamilyWalletPayment record was returned by the API.
+                              </p>
+
+                              {selected.wallet?.total_credited > 0 && (
+                                <p className="text-xs text-yellow-700 mt-2">
+                                  Wallet credit detected:
+                                  <strong className="ml-1">
+                                    ₹{formatAmount(selected.wallet.total_credited)}
+                                  </strong>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* PAYMENT INFORMATION */}
+                  <div className="border border-gray-200 rounded-xl">
+
+                    <div className="px-4 py-3 bg-gray-50 border-b">
+                      <h5 className="font-bold text-gray-800">
+                        Payment Information
+                      </h5>
+                    </div>
+
+                    <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                      <div>
+                        <p className="text-xs text-gray-500">
+                          Payment Status
+                        </p>
+
+                        <p className="font-bold mt-1">
+                          <span
+                            className={`inline-block px-3 py-1 rounded-full text-xs ${
+                              selected.payment_status === 'PAID'
+                                ? 'bg-green-100 text-green-700'
+                                : selected.payment_status === 'REFUNDED'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}
+                          >
+                            {selected.payment_status || 'PENDING'}
+                          </span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-500">
+                          Finance Activated
+                        </p>
+
+                        <p className="font-semibold mt-1">
+                          {selected.is_finance_activated ? (
+                            <span className="text-green-600">
+                              Yes
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">
+                              No
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-500">
+                          Finance Activation Date
+                        </p>
+
+                        <p className="font-semibold mt-1">
+                          {formatDateTime(selected.finance_activated_at)}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-500">
+                          Finance Activated By
+                        </p>
+
+                        <p className="font-semibold mt-1">
+                          {selected.finance_activated_by || '-'}
+                        </p>
+                      </div>
+
+                      {selected.wallet_payment && (
+                        <>
+                          <div>
+                            <p className="text-xs text-gray-500">
+                              Paid Date
+                            </p>
+
+                            <p className="font-semibold mt-1">
+                              {formatDateTime(
+                                selected.wallet_payment.paid_at
+                              )}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-xs text-gray-500">
+                              Paid By
+                            </p>
+
+                            <p className="font-semibold mt-1">
+                              {selected.wallet_payment.paid_by || '-'}
+                            </p>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <p className="text-xs text-gray-500">
+                              Payment Transaction ID
+                            </p>
+
+                            <p className="font-mono font-semibold mt-1 bg-gray-50 border rounded-lg px-3 py-2 break-all">
+                              {selected.wallet_payment.payment_transaction_id ||
+                                '-'}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ADD MEMBER */}
+              {(selected.members?.length || 0) < 3 && (
+                <button
+                  onClick={() => setShowAddMember(true)}
+                  className="cursor-pointer w-full bg-[#11A8A4] hover:bg-[#0e8c89] text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-user-plus"></i>
+                  Add Member
+                </button>
+              )}
+
+              {(selected.members?.length || 0) >= 3 && (
+                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  Maximum 3 members reached for this family.
+                </p>
+              )}
+
+              {/* MEMBERS */}
+              <div className="border-t pt-4">
+                <h4 className="font-bold text-gray-800 mb-2">
+                  Members
+                </h4>
+
+                {selected.members?.length ? (
+                  <div className="space-y-3">
+                    {selected.members.map((m) => (
+                      <div
+                        key={m.id}
+                        className="border border-gray-200 rounded-xl p-3 flex gap-3"
+                      >
+                        {m.photo ? (
+                          <img
+                            src={m.photo}
+                            alt={m.full_name}
+                            className="w-12 h-12 rounded-full object-cover border"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-[#11A8A4]/10 flex items-center justify-center text-[#11A8A4] font-bold">
+                            {m.first_name?.[0]}
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-gray-800 truncate">
+                            {m.full_name}
+
+                            <span className="text-xs font-normal text-gray-500">
+                              {' '}
+                              ({m.relationship})
+                            </span>
+                          </p>
+
+                          <p className="text-xs text-gray-600">
+                            {m.gender} • {m.date_of_birth} • {m.age}y •{' '}
+                            {m.mobile || '-'}
+                            {m.email ? ` • ${m.email}` : ''}
+                          </p>
+
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => openEdit(m)}
+                              className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold border border-blue-200"
+                            >
+                              <i className="fas fa-edit mr-1"></i>
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() => deleteMember(m)}
+                              className="cursor-pointer text-xs bg-red-50 hover:bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-semibold border border-red-200"
+                            >
+                              <i className="fas fa-trash mr-1"></i>
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`self-start px-2 py-1 rounded-full text-xs font-bold ${
+                            m.is_active
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {m.is_active ? 'Active' : 'Inactive'}
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic">No members</p>
+                  <p className="text-gray-500 italic">
+                    No members
+                  </p>
                 )}
               </div>
             </div>
+
             <div className="p-4 border-t flex justify-end">
-              <button onClick={()=>setSelected(null)} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-6 py-2 rounded-xl">Close</button>
+              <button
+                onClick={() => setSelected(null)}
+                className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-6 py-2 rounded-xl"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
