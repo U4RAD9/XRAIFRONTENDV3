@@ -914,8 +914,10 @@ function AdminMakeBooking() {
                     <td colSpan="12" className="py-8 text-center text-gray-500">No patients found.</td>
                   </tr>
                 ) : (
-                  patients.map(p => (
-                    <tr key={p.patient_id} className="hover:bg-blue-50 transition-colors duration-150">
+                  patients.map(p => {
+                    const isNewCase = p.booking_count === 0;
+                    return (
+                    <tr key={p.patient_id} className={`transition-colors duration-150 ${isNewCase ? 'bg-[#00acc1]/15 hover:bg-[#00acc1]/25 border-l-4 border-[#00acc1]' : 'hover:bg-blue-50 border-l-4 border-transparent'}`}>
                       <td className="py-3 px-4 text-left">{p.patient_name}</td>
                       <td className="py-3 px-4 text-center">{p.age}</td>
                       {/* <td className="py-3 px-4 text-center">{p.bp}</td> */}
@@ -936,7 +938,7 @@ function AdminMakeBooking() {
                         </button>
                       </td>
                     </tr>
-                  ))
+                  )})
                 )}
               </tbody>
             </table>

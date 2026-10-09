@@ -1,8 +1,9 @@
 import React from 'react';
 
 const PatientCard = ({ patient, onBookSlot }) => {
+  const isNewCase = patient.booking_count === 0;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex flex-col justify-between h-full hover:shadow-md transition-shadow">
+    <div className={`border rounded-lg p-4 shadow-sm flex flex-col justify-between h-full hover:shadow-md transition-shadow ${isNewCase ? 'bg-[#00acc1]/15 border-[#00acc1]' : 'bg-white border-gray-200'}`}>
       <div className="text-sm text-gray-700 space-y-2 mb-4">
         <p><span className="font-semibold text-gray-900">Name :</span> {patient.patient_name}</p>
         <p><span className="font-semibold text-gray-900">Age:</span> {patient.age}</p>
