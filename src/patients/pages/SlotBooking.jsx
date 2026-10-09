@@ -34,6 +34,7 @@ function SlotBooking() {
   const [apiOffers, setApiOffers] = useState([]);
   const [selectedOfferId, setSelectedOfferId] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponInput, setCouponInput] = useState('');
 
   const [apiLocations, setApiLocations] = useState([]);
   const [apiSlots, setApiSlots] = useState([]);
@@ -220,6 +221,24 @@ function SlotBooking() {
     } else {
       setDiscountAmount(0);
     }
+  };
+
+  const handleApplyCoupon = () => {
+    if (!couponInput.trim()) return;
+    const offer = apiOffers.find(o => o.offer_name.toLowerCase() === couponInput.trim().toLowerCase());
+    if (offer) {
+      applyOffer(offer.id);
+      showToast("Coupon applied successfully!", "success");
+    } else {
+      showToast("Invalid coupon code.", "error");
+      applyOffer('');
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponInput('');
+    applyOffer('');
+    showToast("Coupon removed.", "info");
   };
 
   const handleCheckoutSubmit = async () => {
@@ -742,16 +761,31 @@ function SlotBooking() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Apply Coupon / Offer</label>
-                    <select 
-                      value={selectedOfferId}
-                      onChange={(e) => applyOffer(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#00acc1] focus:ring-1 focus:ring-[#00acc1] transition-colors"
-                    >
-                      <option value="">No Coupon</option>
-                      {apiOffers.map(o => (
-                        <option key={o.id} value={o.id}>{o.offer_name} ({o.discount}{o.discount_type === 'Percentage' || o.discount <= 100 ? '%' : ' ₹'} off)</option>
-                      ))}
-                    </select>
+                    <div className="flex space-x-2">
+                      <input 
+                        type="text"
+                        placeholder="Enter coupon code"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        disabled={!!selectedOfferId}
+                        className="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus:bg-white focus:outline-none focus:border-[#00acc1] focus:ring-1 focus:ring-[#00acc1] transition-colors disabled:opacity-50"
+                      />
+                      {!selectedOfferId ? (
+                        <button 
+                          onClick={handleApplyCoupon}
+                          className="bg-[#00acc1] hover:bg-[#008ba3] text-white px-4 py-2.5 rounded-lg font-bold transition-colors shadow-sm"
+                        >
+                          Apply
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleRemoveCoupon}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg font-bold transition-colors shadow-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                     
                     <div className="mt-4">
                       <label className="block text-sm font-bold text-gray-700 mb-2">Payment Mode</label>
