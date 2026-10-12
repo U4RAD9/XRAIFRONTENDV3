@@ -42,6 +42,191 @@ const emptyMember = (relationship = 'SON') => ({
   photoPreview: '',
 });
 
+// const [showHeadCamera, setShowHeadCamera] = useState(false);
+
+
+function LiveCameraCapture({ onCapture, onClose }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [cameraError, setCameraError] = useState('');
+  const [cameraReady, setCameraReady] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    setCameraReady(false);
+  };
+
+  const startCamera = async () => {
+    setCameraError('');
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError(
+        'Camera access is unavailable. Use HTTPS or a supported browser.'
+      );
+      return;
+    }
+
+    try {
+      stopCamera();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'user' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setCameraReady(true);
+      }
+    } catch (error) {
+      stopCamera();
+
+      if (
+        error.name === 'NotAllowedError' ||
+        error.name === 'PermissionDeniedError'
+      ) {
+        setCameraError(
+          'Camera permission denied. Allow camera access in your browser settings.'
+        );
+      } else if (
+        error.name === 'NotFoundError' ||
+        error.name === 'DevicesNotFoundError'
+      ) {
+        setCameraError('No camera was found on this device.');
+      } else {
+        setCameraError(
+          error.message || 'Unable to start the camera.'
+        );
+      }
+    }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      setCameraError('Camera is not ready. Please try again.');
+      return;
+    }
+
+    setCapturing(true);
+    setCameraError('');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      setCameraError('Unable to capture the photo.');
+      setCapturing(false);
+      return;
+    }
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      (blob) => {
+        setCapturing(false);
+
+        if (!blob) {
+          setCameraError('Photo capture failed. Please try again.');
+          return;
+        }
+
+        const file = new File(
+          [blob],
+          `registration-photo-${Date.now()}.jpg`,
+          { type: 'image/jpeg' }
+        );
+
+        // Pass a normal File to the existing registration form.
+        onCapture(file);
+        stopCamera();
+        onClose();
+      },
+      'image/jpeg',
+      0.9
+    );
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="font-semibold text-gray-800">
+          Live Camera
+        </h4>
+
+        <button
+          type="button"
+          onClick={() => {
+            stopCamera();
+            onClose();
+          }}
+          className="text-sm text-red-600 font-semibold"
+        >
+          Close
+        </button>
+      </div>
+
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        className="w-full max-w-lg rounded-lg bg-black aspect-video object-cover"
+      />
+
+      {cameraError && (
+        <p role="alert" className="text-sm text-red-600">
+          {cameraError}
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={startCamera}
+          className="rounded-lg bg-[#233560] px-4 py-2 text-white font-semibold"
+        >
+          {cameraReady ? 'Restart Camera' : 'Start Camera'}
+        </button>
+
+        <button
+          type="button"
+          onClick={capturePhoto}
+          disabled={!cameraReady || capturing}
+          className="rounded-lg bg-[#11A8A4] px-4 py-2 text-white font-semibold disabled:opacity-50"
+        >
+          {capturing ? 'Capturing...' : 'Capture Photo'}
+        </button>
+      </div>
+
+      <p className="text-xs text-gray-500">
+        Position the person's face clearly in the frame before capturing.
+      </p>
+    </div>
+  );
+}
+
+
 function ChannelPartnerRegistration() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,6 +236,7 @@ function ChannelPartnerRegistration() {
     selectedPackage?.max_family_members !== undefined
       ? Number(selectedPackage.max_family_members)
       : null;
+  const [showHeadCamera, setShowHeadCamera] = useState(false);
 
   const [family, setFamily] = useState({
     primary_mobile: '',
@@ -68,6 +254,7 @@ function ChannelPartnerRegistration() {
   const [head, setHead] = useState(emptyMember('HEAD'));
   const [headExtra, setHeadExtra] = useState({ is_primary_contact: true });
   const [members, setMembers] = useState([]);
+  const [memberCameraIndex, setMemberCameraIndex] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   // const [result, setResult] = useState(null);
   const [excelUploading, setExcelUploading] = useState(false);
@@ -466,10 +653,10 @@ function ChannelPartnerRegistration() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">Loan Number</label>
               <input name="loan_number" value={family.loan_number} onChange={handleFamilyChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="LN-123456" />
             </div> */}
-            {/* <div>
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Primary Mobile <span className="text-red-500">*</span></label>
               <input name="primary_mobile" value={family.primary_mobile} onChange={handleFamilyChange} required className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="9876543210" />
-            </div> */}
+            </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Pincode <span className="text-red-500">*</span></label>
               <input name="pincode" value={family.pincode} onChange={handleFamilyChange} required className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#11A8A4]" placeholder="412205" />
@@ -592,10 +779,59 @@ function ChannelPartnerRegistration() {
                 {SOCIAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div> */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Photo</label>
               <input type="file" name="photo" accept="image/*" onChange={handleHeadChange} className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white focus:outline-none focus:border-[#11A8A4]" />
               {head.photoPreview && <img src={head.photoPreview} alt="preview" className="mt-2 h-16 w-16 rounded-lg object-cover border" />}
+            </div> */}            
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Family Head Photo
+              </label>
+
+              <input
+                type="file"
+                name="photo"
+                accept="image/*"
+                capture="user"
+                onChange={handleHeadChange}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowHeadCamera((previous) => !previous)}
+                className="mt-3 flex items-center gap-2 rounded-lg bg-[#233560] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                <i className="fas fa-camera" />
+                {showHeadCamera ? 'Hide Live Camera' : 'Open Live Camera'}
+              </button>
+
+              {showHeadCamera && (
+                <LiveCameraCapture
+                  onCapture={(file) => {
+                    setHead((previous) => ({
+                      ...previous,
+                      photo: file,
+                      photoPreview: URL.createObjectURL(file),
+                    }));
+                  }}
+                  onClose={() => setShowHeadCamera(false)}
+                />
+              )}
+
+              {head.photoPreview && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500 mb-1">
+                    Selected photo
+                  </p>
+                  <img
+                    src={head.photoPreview}
+                    alt="Family Head"
+                    className="h-24 w-24 rounded-lg object-cover border"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -704,12 +940,69 @@ function ChannelPartnerRegistration() {
                         <option value="">Select</option>
                         {BLOOD_GROUPS.map(b => <option key={b} value={b}>{b}</option>)}
                       </select>
-                    </div> */}
+                    </div> */}                    
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Photo</label>
-                      <input type="file" name="photo" accept="image/*" onChange={(e) => handleMemberChange(idx, e)} className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white text-sm" />
-                      {m.photoPreview && <img src={m.photoPreview} alt="preview" className="mt-2 h-14 w-14 rounded-lg object-cover border" />}
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Member #{idx + 1} Photo
+                      </label>
+
+                      <input
+                        type="file"
+                        name="photo"
+                        accept="image/*"
+                        capture="user"
+                        onChange={(e) => handleMemberChange(idx, e)}
+                        className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white text-sm"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMemberCameraIndex((current) =>
+                            current === idx ? null : idx
+                          )
+                        }
+                        className="mt-3 flex items-center gap-2 rounded-lg bg-[#233560] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                      >
+                        <i className="fas fa-camera" />
+                        {memberCameraIndex === idx
+                          ? 'Hide Live Camera'
+                          : 'Open Live Camera'}
+                      </button>
+
+                      {memberCameraIndex === idx && (
+                        <LiveCameraCapture
+                          onCapture={(file) => {
+                            setMembers((previous) =>
+                              previous.map((member, memberIdx) =>
+                                memberIdx === idx
+                                  ? {
+                                      ...member,
+                                      photo: file,
+                                      photoPreview: URL.createObjectURL(file),
+                                    }
+                                  : member
+                              )
+                            );
+                          }}
+                          onClose={() => setMemberCameraIndex(null)}
+                        />
+                      )}
+
+                      {m.photoPreview && (
+                        <div className="mt-3">
+                          <p className="text-xs text-gray-500 mb-1">
+                            Selected photo
+                          </p>
+                          <img
+                            src={m.photoPreview}
+                            alt={`Member ${idx + 1}`}
+                            className="h-24 w-24 rounded-lg object-cover border"
+                          />
+                        </div>
+                      )}
                     </div>
+
                     {/* <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">Marital Status</label>
                       <select name="marital_status" value={m.marital_status} onChange={(e) => handleMemberChange(idx, e)} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 bg-white">
