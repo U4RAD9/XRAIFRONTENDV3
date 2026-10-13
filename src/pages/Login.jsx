@@ -343,13 +343,13 @@ function Login() {
           {/* Decorative circles */}
           <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-cyan-300 opacity-20 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10 flex flex-col items-center space-y-6">
             <div className="bg-white px-6 py-4 rounded-2xl shadow-xl inline-block mb-2">
-               <img src="https://xraidigital.com/Content/images/logo.png" alt="XRAI Digital Logo" className="h-14 object-contain" />
+              <img src="https://xraidigital.com/Content/images/logo.png" alt="XRAI Digital Logo" className="h-14 object-contain" />
             </div>
-            
-            <h2 className="text-3xl font-extrabold tracking-tight">Welcome to XRAI Digital</h2>
+
+            <h2 className="text-3xl font-extrabold tracking-tight">Welcome to XRAi Digital</h2>
             <p className="text-lg text-cyan-50 font-medium max-w-md mx-auto leading-relaxed">
               Pioneering the future of digital healthcare. We seamlessly connect advanced diagnostic services with patients everywhere—empowering you with fast, secure, and accessible health management tools.
             </p>

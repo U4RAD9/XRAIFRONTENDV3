@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
+import ConsentNoticeModal from '../components/ConsentNoticeModal';
 
 function Registration() {
   const [formData, setFormData] = useState({
@@ -14,13 +15,35 @@ function Registration() {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
-  const [consent1, setConsent1] = useState(false);
   const [consent2, setConsent2] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentRecord, setConsentRecord] = useState({
+    noticeVersion: 'DPDP-1.0',
+    timestamp: null,
+    required: { a: true, b: true, c: true, d: true, e: true },
+    optional: { f: true, g: true, h: true },
+  });
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({...formData, [e.target.name]: e.target.value});
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCheckboxClick = (e) => {
+    if (!consent2) {
+      // Forcefully open full notice if not agreed yet
+      e.preventDefault();
+      setShowConsentModal(true);
+    } else {
+      // Allow unchecking if already agreed
+      setConsent2(false);
+    }
+  };
+
+  const handleConsentAgreed = (record) => {
+    setConsentRecord(record);
+    setConsent2(true);
   };
 
   const handleSendOtp = async (e) => {
@@ -30,8 +53,8 @@ function Registration() {
       return;
     }
 
-    if (!consent1 || !consent2) {
-      alert("Please accept the DPDP Act consent and Privacy Policy to proceed.");
+    if (!consent2) {
+      alert("Please accept the DPDP Act consent to proceed.");
       return;
     }
 
@@ -62,10 +85,10 @@ function Registration() {
     setLoading(true);
     try {
       const verifyRes = await axiosInstance.post('/auth/verify_otp', { mobile: formData.MobileNumber, otp });
-      
+
       if (verifyRes.data === true) {
         const signupRes = await axiosInstance.post('/auth/signup', formData);
-        
+
         if (signupRes.data.Success === true) {
           alert("Registration successful! Please login.");
           navigate('/login', { replace: true });
@@ -86,7 +109,7 @@ function Registration() {
   return (
     <div className="min-h-screen px-6 flex items-center justify-center p-4 font-sans">
       <div className="bg-white shadow-xl rounded-2xl w-full max-w-4xl flex overflow-hidden">
-        
+
         {/* Left Side: Form */}
         <div className="w-full md:w-1/2 p-8 md:p-12">
           <div className="mb-8 text-center md:text-left">
@@ -142,27 +165,57 @@ function Registration() {
 
             {!otpSent && (
               <div className="flex flex-col space-y-3 mt-6 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input type="checkbox" checked={consent1} onChange={(e) => setConsent1(e.target.checked)} className="mt-1 w-4 h-4 text-cyan-600 rounded border-gray-300 focus:ring-cyan-500" />
-                  <span className="leading-tight">I agree to the Terms of Service and Privacy Policy.</span>
-                </label>
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input type="checkbox" checked={consent2} onChange={(e) => setConsent2(e.target.checked)} className="mt-1 w-4 h-4 text-cyan-600 rounded border-gray-300 focus:ring-cyan-500" />
-                  <span className="leading-tight">I explicitly consent to the collection, processing, and storage of my personal and health data in accordance with the Digital Personal Data Protection (DPDP) Act, 2023.</span>
-                </label>
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="dpdpConsent"
+                    checked={consent2}
+                    onChange={() => { }}
+                    onClick={handleCheckboxClick}
+                    className="mt-1 w-4 h-4 text-cyan-600 rounded border-gray-300 focus:ring-cyan-500 cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="dpdpConsent" className="leading-relaxed cursor-pointer select-none text-gray-700">
+                    I hereby consent to collection and processing of my data for availing Diagnostic Services and relevant services in the manner described in the{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowConsentModal(true);
+                      }}
+                      className="text-[#00acc1] hover:text-[#008ba3] font-bold underline cursor-pointer inline transition-colors text-left"
+                    >
+                      here
+                    </button>
+                    .
+                  </label>
+                </div>
               </div>
             )}
 
             {!otpSent ? (
-              <button type="button" onClick={handleSendOtp} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-4 hover:shadow-lg transition-all">
-                {loading ? 'Sending OTP...' : 'Send OTP'}
-              </button>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={loading || !consent2}
+                  title={!consent2 ? "Please agree to the DPDP Act consent notice to enable Send OTP" : ""}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+                >
+                  {loading ? 'Sending OTP...' : 'Send OTP'}
+                </button>
+                {!consent2 && (
+                  <p className="text-xs text-amber-600 text-center mt-2 font-medium">
+                    Please read and accept the DPDP Act consent notice above to enable Send OTP.
+                  </p>
+                )}
+              </div>
             ) : (
               <button type="button" onClick={handleVerifyAndSignup} disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold py-3 rounded-xl mt-6 hover:shadow-lg transition-all">
                 {loading ? 'Registering...' : 'Verify OTP & Sign up'}
               </button>
             )}
-            
+
             <p className="text-center text-sm text-gray-600 mt-4">
               Already have an account? <Link to="/login" className="text-[#00acc1] font-bold hover:underline">Log in</Link>
             </p>
@@ -174,19 +227,26 @@ function Registration() {
           {/* Decorative circles */}
           <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-cyan-300 opacity-20 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10 flex flex-col items-center space-y-6">
             <div className="bg-white px-6 py-4 rounded-2xl shadow-xl inline-block mb-2">
-               <img src="https://xraidigital.com/Content/images/logo.png" alt="XRAI Digital Logo" className="h-14 object-contain" />
+              <img src="https://xraidigital.com/Content/images/logo.png" alt="XRAI Digital Logo" className="h-14 object-contain" />
             </div>
-            
-            <h2 className="text-3xl font-extrabold tracking-tight">Welcome to XRAI Digital</h2>
+
+            <h2 className="text-3xl font-extrabold tracking-tight">Welcome to XRAi Digital</h2>
             <p className="text-lg text-cyan-50 font-medium max-w-md mx-auto leading-relaxed">
               Pioneering the future of digital healthcare. We seamlessly connect advanced diagnostic services with patients everywhere—empowering you with fast, secure, and accessible health management tools.
             </p>
           </div>
         </div>
       </div>
+
+      <ConsentNoticeModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+        onConsentAgreed={handleConsentAgreed}
+        initialConsents={consentRecord}
+      />
     </div>
   );
 }
