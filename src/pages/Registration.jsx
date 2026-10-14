@@ -185,7 +185,7 @@ function Registration() {
                       }}
                       className="text-[#00acc1] hover:text-[#008ba3] font-bold underline cursor-pointer inline transition-colors text-left"
                     >
-                      here
+                      notice here
                     </button>
                     .
                   </label>
