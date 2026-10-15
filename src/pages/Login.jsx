@@ -94,6 +94,8 @@ function Login() {
 
         if (res.data.UserType === "Admin") {
           navigate('/admin/dashboard', { replace: true });
+        } else if (res.data.UserType === "SuperAdmin" || res.data.UserType === "Superadmin") {
+          navigate('/superadmin/dashboard', { replace: true });
         } else if (res.data.UserType === "Partner") {
           navigate('/partner/dashboard', { replace: true });
         } else if (res.data.UserType === "Technician") {
@@ -153,6 +155,8 @@ function Login() {
 
         if (res.data.UserType === "Admin") {
           navigate('/admin/dashboard', { replace: true });
+        } else if (res.data.UserType === "SuperAdmin" || res.data.UserType === "Superadmin") {
+          navigate('/superadmin/dashboard', { replace: true });
         } else if (res.data.UserType === "Partner") {
           navigate('/partner/dashboard', { replace: true });
         } else if (res.data.UserType === "Technician") {

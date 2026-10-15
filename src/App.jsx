@@ -13,6 +13,7 @@ import PatientLayout from './patients/components/PatientLayout';
 import Pricing from './pages/Pricing';
 import Corporate from './pages/Corporate';
 import SlotBooking from './patients/pages/SlotBooking';
+import PatientPrivacyConsent from './patients/pages/PatientPrivacyConsent';
 import PartnerLayout from './partner/components/PartnerLayout';
 import PartnerDashboard from './partner/pages/PartnerDashboard';
 import PartnerBooking from './partner/pages/PartnerBooking';
@@ -48,6 +49,8 @@ import ChannelPartnerDashboard from './channelPartner/pages/ChannelPartnerDashbo
 import ChannelPartnerPackages from './channelPartner/pages/ChannelPartnerPackages';
 import ChannelPartnerRegistration from './channelPartner/pages/ChannelPartnerRegistration';
 import ChannelPartnerFamilyList from './channelPartner/pages/ChannelPartnerFamilyList';
+import SuperAdminLayout from './superadmin/components/SuperAdminLayout';
+import SuperAdminConsentManagement from './superadmin/pages/SuperAdminConsentManagement';
 
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
@@ -89,6 +92,7 @@ function App() {
           <Route path="/patient" element={<PatientLayout />}>
             <Route path="dashboard" element={<PatientDashboard />} />
             <Route path="book-slot" element={<SlotBooking />} />
+            <Route path="privacy-consent" element={<PatientPrivacyConsent />} />
           </Route>
 
           <Route path="/partner" element={<PartnerLayout />}>
@@ -135,6 +139,13 @@ function App() {
             <Route path="registration" element={<ChannelPartnerPackages />} />
             <Route path="registration-form" element={<ChannelPartnerRegistration />} />
             <Route path="list" element={<ChannelPartnerFamilyList />} />
+          </Route>
+
+          {/* SuperAdmin Consent Management & Governance Portal */}
+          <Route path="/superadmin" element={<SuperAdminLayout />}>
+            <Route index element={<SuperAdminConsentManagement />} />
+            <Route path="dashboard" element={<SuperAdminConsentManagement />} />
+            <Route path="consents" element={<SuperAdminConsentManagement />} />
           </Route>
         </Routes>
       </Router>

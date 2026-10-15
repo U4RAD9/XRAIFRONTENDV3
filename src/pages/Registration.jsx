@@ -87,7 +87,15 @@ function Registration() {
       const verifyRes = await axiosInstance.post('/auth/verify_otp', { mobile: formData.MobileNumber, otp });
 
       if (verifyRes.data === true) {
-        const signupRes = await axiosInstance.post('/auth/signup', formData);
+        const signupPayload = {
+          ...formData,
+          otp,
+          consentRecord: {
+            ...consentRecord,
+            timestamp: consentRecord?.timestamp || new Date().toISOString()
+          }
+        };
+        const signupRes = await axiosInstance.post('/auth/signup', signupPayload);
 
         if (signupRes.data.Success === true) {
           alert("Registration successful! Please login.");

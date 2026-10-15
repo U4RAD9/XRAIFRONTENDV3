@@ -47,4 +47,6 @@ export const ENDPOINTS = {
   SLOT_MASTER: '/slot-master/',
   USERS: '/users/',
   PATIENTS: '/patients/',
+  DPDP_CONSENTS: '/dpdp-consents/',
+  DPDP_MY_CONSENT: '/dpdp-consents/my-consent/',
 };

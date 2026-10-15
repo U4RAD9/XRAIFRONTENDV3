@@ -232,6 +232,7 @@ function AdminManageUsers() {
                   onChange={(e) => setCurrentUser({...currentUser, userType: e.target.value})}
                   className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#00acc1]"
                 >
+                  <option value="SuperAdmin">SuperAdmin</option>
                   <option value="Admin">Admin</option>
                   <option value="Technician">Technician</option>
                   <option value="Patient">Patient</option>
