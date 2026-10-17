@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ENDPOINTS } from '../../api/endpoints';
 
 const ruralAxios = axios.create();
 
 function ChannelPartnerFamilyList() {
+  const navigate = useNavigate();
   const [families, setFamilies] = useState([]);
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +16,7 @@ function ChannelPartnerFamilyList() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+  const [aiVitalFamily, setAiVitalFamily] = useState(null);
   const [editingMember, setEditingMember] = useState(null);
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [editForm, setEditForm] = useState({});
@@ -321,6 +324,13 @@ function ChannelPartnerFamilyList() {
   // Also support direct GET members list if needed (not used in table but can be fetched)
   // const fetchMembersDirect = ... (GET /api/rural-health/members/) - available via same helper
 
+  const openAiVitalMember = (family, member) => {
+    setAiVitalFamily(null);
+    navigate(`/channel-partner/ai-vital/${member.id}`, {
+      state: { member, family },
+    });
+  };
+
   if (loading) {
     return (
       <div className="w-full py-20 text-center">
@@ -506,6 +516,7 @@ function ChannelPartnerFamilyList() {
                     <th className="px-4 py-3 text-center">Members</th>
                     <th className="px-4 py-3 text-center">Active</th>
                     <th className="px-4 py-3 text-left">Created</th>
+                    <th className="px-4 py-3 text-center">Aivital</th>
                     <th className="px-4 py-3 text-center">Action</th>
                   </tr>
                 </thead>
@@ -530,6 +541,9 @@ function ChannelPartnerFamilyList() {
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-600">{f.created_at ? new Date(f.created_at).toLocaleString() : '-'}</td>
                       <td className="px-4 py-3 text-center">
+                        <button onClick={()=>setAiVitalFamily(f)} className="cursor-pointer bg-[#11A8A4] hover:bg-[#0e8c89] text-white px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap"><i className="fas fa-heartbeat mr-1"></i>AI-Vital</button>
+                      </td>
+                      <td className="px-4 py-3 text-center">
                         <button onClick={()=>setSelected(f)} className="cursor-pointer bg-[#233560] hover:bg-[#1a2747] text-white px-3 py-1.5 rounded-lg text-xs font-bold">View</button>
                       </td>
                     </tr>
@@ -550,11 +564,82 @@ function ChannelPartnerFamilyList() {
                 <p className="text-xs text-gray-500">{f.village}, {f.district} • {f.pincode}</p>
                 <p className="text-xs font-mono mt-1">{f.primary_mobile}</p>
                 <p className="text-xs text-gray-600 mt-1">Members: {f.members?.length || 0}</p>
-                <button onClick={()=>setSelected(f)} className="cursor-pointer mt-3 w-full bg-[#11A8A4] text-white py-2 rounded-xl text-sm font-bold">View Details</button>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={()=>setAiVitalFamily(f)} className="cursor-pointer flex-1 bg-[#11A8A4] text-white py-2 rounded-xl text-sm font-bold"><i className="fas fa-heartbeat mr-1"></i>AI-Vital</button>
+                  <button onClick={()=>setSelected(f)} className="cursor-pointer flex-1 bg-[#233560] text-white py-2 rounded-xl text-sm font-bold">View Details</button>
+                </div>
               </div>
             ))}
           </div>
         </>
+      )}
+
+      {/* AI-Vital: choose family member */}
+      {aiVitalFamily && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setAiVitalFamily(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
+                  <i className="fas fa-heartbeat text-[#11A8A4]"></i>
+                  AI-Vital – {aiVitalFamily.family_id}
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">Select a family member to open AI-Vital</p>
+              </div>
+              <button
+                onClick={() => setAiVitalFamily(null)}
+                className="cursor-pointer w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+              >
+                <i className="fas fa-times text-gray-600"></i>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-3">
+              {(aiVitalFamily.members?.length || 0) === 0 && (
+                <p className="text-gray-500 italic text-sm">No members in this family.</p>
+              )}
+              {aiVitalFamily.members?.map((m) => (
+                <div key={m.id} className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 hover:border-[#11A8A4] transition-colors">
+                  {m.photo ? (
+                    <img src={m.photo} alt={m.full_name} className="w-11 h-11 rounded-full object-cover border" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-[#11A8A4]/10 flex items-center justify-center text-[#11A8A4] font-bold">
+                      {m.first_name?.[0] || '?'}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-gray-800 truncate text-sm">
+                      {m.full_name}
+                      <span className="text-xs font-normal text-gray-500"> ({m.relationship})</span>
+                    </p>
+                    <p className="text-xs text-gray-500 font-mono">{m.member_id || `ID: ${m.id}`}</p>
+                  </div>
+                  <button
+                    onClick={() => openAiVitalMember(aiVitalFamily, m)}
+                    className="cursor-pointer shrink-0 bg-[#11A8A4] hover:bg-[#0e8c89] text-white px-3 py-1.5 rounded-lg text-xs font-bold"
+                  >
+                    Open
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 border-t flex justify-end">
+              <button
+                onClick={() => setAiVitalFamily(null)}
+                className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-6 py-2 rounded-xl"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Family Detail Modal with Member CRUD */}

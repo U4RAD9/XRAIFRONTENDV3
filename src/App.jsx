@@ -56,6 +56,7 @@ import ConsultantExamPortal from './consultant/pages/ConsultantExamPortal';
 import ConsultantAdminLayout from './consultantAdmin/components/ConsultantAdminLayout';
 import ConsultantAdminEvaluations from './consultantAdmin/pages/ConsultantAdminEvaluations';
 import ConsultantAdminManageDoctors from './consultantAdmin/pages/ConsultantAdminManageDoctors';
+import ChannelPartnerAiVital from './channelPartner/pages/ChannelPartnerAiVital';
 
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
@@ -136,6 +137,7 @@ function App() {
             <Route path="registration" element={<ChannelPartnerPackages />} />
             <Route path="registration-form" element={<ChannelPartnerRegistration />} />
             <Route path="list" element={<ChannelPartnerFamilyList />} />
+            <Route path="ai-vital/:memberId" element={<ChannelPartnerAiVital />} />
           </Route>
 
           {/* Alias for backend dashboard path "/channel-partner-dashboard" */}
@@ -144,6 +146,7 @@ function App() {
             <Route path="registration" element={<ChannelPartnerPackages />} />
             <Route path="registration-form" element={<ChannelPartnerRegistration />} />
             <Route path="list" element={<ChannelPartnerFamilyList />} />
+            <Route path="ai-vital/:memberId" element={<ChannelPartnerAiVital />} />
           </Route>
 
           {/* SuperAdmin Consent Management & Governance Portal */}
