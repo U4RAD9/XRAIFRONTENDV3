@@ -449,7 +449,7 @@ export const EXAM_DATA = {
           ]
         },
         {
-          "title": "Optional ED testing before discharge.",
+          "title": "ED testing before discharge.",
           "opts": [
             "12-lead ECG",
             "Brief continuous pulse oximetry 1-4 h",

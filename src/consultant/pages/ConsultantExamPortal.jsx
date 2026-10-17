@@ -7,6 +7,167 @@ import '../styles/consultantExam.css';
 const CASES = EXAM_DATA.cases;
 const LOCAL_STORAGE_KEY = 'pcexam-consultant-answers-v1';
 
+// Optimized smooth textarea: preserves focus and eliminates re-render stutter during fast typing
+const SmoothTextarea = React.memo(function SmoothTextarea({
+  dataKey,
+  value,
+  placeholder,
+  rows = 4,
+  className = '',
+  style = {},
+  onCommit,
+}) {
+  const [localVal, setLocalVal] = useState(value || '');
+  const isFocusedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isFocusedRef.current) {
+      setLocalVal(value || '');
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      data-key={dataKey}
+      name={dataKey}
+      rows={rows}
+      className={className}
+      style={style}
+      placeholder={placeholder}
+      value={localVal}
+      onFocus={() => {
+        isFocusedRef.current = true;
+      }}
+      onBlur={(e) => {
+        isFocusedRef.current = false;
+        if (onCommit) onCommit(dataKey, e.target.value);
+      }}
+      onChange={(e) => setLocalVal(e.target.value)}
+    />
+  );
+});
+
+// Optimized smooth single-line input
+const SmoothInput = React.memo(function SmoothInput({
+  dataKey,
+  type = 'text',
+  value,
+  placeholder,
+  className = '',
+  style = {},
+  onCommit,
+}) {
+  const [localVal, setLocalVal] = useState(value || '');
+  const isFocusedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isFocusedRef.current) {
+      setLocalVal(value || '');
+    }
+  }, [value]);
+
+  return (
+    <input
+      type={type}
+      data-key={dataKey}
+      name={dataKey}
+      className={className}
+      style={style}
+      placeholder={placeholder}
+      value={localVal}
+      onFocus={() => {
+        isFocusedRef.current = true;
+      }}
+      onBlur={(e) => {
+        isFocusedRef.current = false;
+        if (onCommit) onCommit(dataKey, e.target.value);
+      }}
+      onChange={(e) => setLocalVal(e.target.value)}
+    />
+  );
+});
+
+// Agree / Disagree Component Block declared externally to guarantee persistent DOM nodes & smooth typing
+const AgreeBlock = React.memo(function AgreeBlock({
+  id,
+  flagged,
+  val,
+  agreeWhy,
+  why,
+  rule,
+  onRadioSelect,
+  onCommit,
+}) {
+  return (
+    <div className="mt-3">
+      <p className="agree">Do you agree with this answer?</p>
+      <div className="seg yn" role="radiogroup">
+        <label>
+          <input
+            type="radio"
+            name={id}
+            value="yes"
+            checked={val === 'yes'}
+            onChange={() => onRadioSelect(id, 'yes')}
+          />
+          <span>Yes, I agree</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name={id}
+            value="no"
+            checked={val === 'no'}
+            onChange={() => onRadioSelect(id, 'no')}
+          />
+          <span>No, I don’t agree</span>
+        </label>
+      </div>
+
+      {val === 'yes' && (
+        <div className="why agree-why">
+          <p className="label">Why do you agree? Write your explanation</p>
+          <SmoothTextarea
+            dataKey={id + '-agree-why'}
+            rows={4}
+            value={agreeWhy}
+            placeholder="Explain why you agree, clinical rationale, or supporting notes..."
+            onCommit={onCommit}
+          />
+        </div>
+      )}
+
+      {val === 'no' && (
+        <div className="why">
+          <p className="label">Why don’t you agree? Write your answer</p>
+          <SmoothTextarea
+            dataKey={id + '-why'}
+            rows={4}
+            value={why}
+            placeholder="What is wrong, missing or unsafe, and what would you answer instead?"
+            onCommit={onCommit}
+          />
+        </div>
+      )}
+
+      {flagged && (
+        <div className="why ruling" style={{ marginTop: '10px' }}>
+          <p className="label" style={{ color: 'var(--warn)' }}>
+            Your ruling on the reviewer note
+          </p>
+          <SmoothTextarea
+            dataKey={id + '-rule'}
+            rows={3}
+            value={rule}
+            placeholder="Rule on the point the candidate flagged"
+            onCommit={onCommit}
+          />
+        </div>
+      )}
+    </div>
+  );
+});
+
 function ConsultantExamPortal() {
   const [answers, setAnswers] = useState({});
   const [currentView, setCurrentView] = useState('intro');
@@ -22,6 +183,7 @@ function ConsultantExamPortal() {
   currentViewRef.current = currentView;
 
   const saveTimerRef = useRef(null);
+  const examContainerRef = useRef(null);
 
   // Helper: compute units that count toward progress per case
   const getCaseUnits = useCallback((c) => {
@@ -40,7 +202,6 @@ function ConsultantExamPortal() {
   const isUnitDone = useCallback((k, ansMap) => {
     const v = ansMap[k];
     if (v === undefined || String(v).trim() === '') return false;
-    // Selecting yes/no or providing any input counts as progress. Additional reasoning is completely optional.
     return true;
   }, []);
 
@@ -152,11 +313,11 @@ function ConsultantExamPortal() {
   };
 
   // Debounced backend save
-  const triggerDebouncedSave = useCallback((newAnswers, view) => {
+  const triggerDebouncedSave = useCallback((newAnswers, view, immediate = false) => {
     notifySaveStatus('saving');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
-    saveTimerRef.current = setTimeout(async () => {
+    const performSave = async () => {
       try {
         const stats = computeStats(newAnswers);
         const compiled = compileAnswers(newAnswers);
@@ -182,8 +343,47 @@ function ConsultantExamPortal() {
         console.error('Error auto-saving to backend:', err);
         notifySaveStatus('error');
       }
-    }, 750);
+    };
+
+    if (immediate) {
+      performSave();
+    } else {
+      saveTimerRef.current = setTimeout(performSave, 650);
+    }
   }, [computeStats, compileAnswers]);
+
+  // Global event listener on container for smooth non-blocking input typing
+  useEffect(() => {
+    const el = examContainerRef.current;
+    if (!el) return;
+
+    const handleNativeInput = (e) => {
+      const target = e.target;
+      if (!target) return;
+      const key = target.dataset?.key || target.name;
+      if (!key) return;
+
+      // Update in-memory answer ref immediately
+      answersRef.current[key] = target.value;
+
+      // Persist to local storage
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(answersRef.current));
+      } catch (err) {}
+
+      // Notify saving status and debounce server write
+      notifySaveStatus('saving');
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+      saveTimerRef.current = setTimeout(() => {
+        setAnswers({ ...answersRef.current });
+        triggerDebouncedSave(answersRef.current, currentViewRef.current);
+      }, 700);
+    };
+
+    el.addEventListener('input', handleNativeInput);
+    return () => el.removeEventListener('input', handleNativeInput);
+  }, [triggerDebouncedSave]);
 
   // Initial load: Fetch from backend and hydrate state
   useEffect(() => {
@@ -206,17 +406,21 @@ function ConsultantExamPortal() {
           const serverAnswers = res.data.answers || {};
           const merged = { ...localCached, ...serverAnswers };
           setAnswers(merged);
+          answersRef.current = merged;
           setExamStatus(res.data.status || 'DRAFT');
           if (res.data.current_view) {
             setCurrentView(String(res.data.current_view));
+            currentViewRef.current = String(res.data.current_view);
           }
           notifySaveStatus('saved', res.data.last_saved_at ? new Date(res.data.last_saved_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
         } else {
           setAnswers(localCached);
+          answersRef.current = localCached;
         }
       } catch (err) {
         console.warn('Backend fetch failed, falling back to local storage cache:', err);
         setAnswers(localCached);
+        answersRef.current = localCached;
       } finally {
         setLoading(false);
       }
@@ -230,19 +434,33 @@ function ConsultantExamPortal() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  const handleValueChange = (key, value) => {
+  // Immediate commit for blur or direct user actions
+  const handleCommit = useCallback((key, value) => {
     const updated = { ...answersRef.current, [key]: value };
+    answersRef.current = updated;
+    setAnswers(updated);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {}
+    triggerDebouncedSave(updated, currentViewRef.current, true);
+  }, [triggerDebouncedSave]);
+
+  // Direct toggle for radio buttons and checkboxes
+  const handleValueChange = useCallback((key, value) => {
+    const updated = { ...answersRef.current, [key]: value };
+    answersRef.current = updated;
     setAnswers(updated);
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {}
     triggerDebouncedSave(updated, currentViewRef.current);
-  };
+  }, [triggerDebouncedSave]);
 
   const handleViewChange = (v) => {
     const strV = String(v);
     setCurrentView(strV);
-    triggerDebouncedSave(answersRef.current, strV);
+    currentViewRef.current = strV;
+    triggerDebouncedSave(answersRef.current, strV, true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -289,7 +507,7 @@ function ConsultantExamPortal() {
     const confirmMsg =
       `Submit your examination evaluation packet?\n\n` +
       `Current progress: ${stats.completed_cases} of ${stats.total_cases} clinical cases touched (${stats.percent}% coverage).\n\n` +
-      `Note: None of the questions are compulsory. You may submit with whatever answers you have completed. All responses are saved securely to your consultant account.`;
+      `All responses are saved securely to your consultant account.`;
     if (!window.confirm(confirmMsg)) return;
 
     setIsSubmitting(true);
@@ -338,80 +556,9 @@ function ConsultantExamPortal() {
 
   const hasFlag = (t) => /\[Reviewer:/.test(t);
 
-  // Agree / Disagree Component Block
-  const AgreeBlock = ({ id, flagged }) => {
-    const val = answers[id];
-    return (
-      <div className="mt-3">
-        <p className="agree">Do you agree with this answer?</p>
-        <div className="seg yn" role="radiogroup">
-          <label>
-            <input
-              type="radio"
-              name={id}
-              value="yes"
-              checked={val === 'yes'}
-              onChange={() => handleValueChange(id, 'yes')}
-            />
-            <span>Yes, I agree</span>
-          </label>
-          <label>
-            <input
-              type="radio"
-              name={id}
-              value="no"
-              checked={val === 'no'}
-              onChange={() => handleValueChange(id, 'no')}
-            />
-            <span>No, I don’t agree</span>
-          </label>
-        </div>
-
-        {val === 'yes' && (
-          <div className="why agree-why">
-            <p className="label">Why do you agree? Write your explanation (Optional)</p>
-            <textarea
-              rows={4}
-              value={answers[id + '-agree-why'] || ''}
-              placeholder="(Optional) Explain why you agree, clinical rationale, or supporting notes..."
-              onChange={(e) => handleValueChange(id + '-agree-why', e.target.value)}
-            />
-          </div>
-        )}
-
-        {val === 'no' && (
-          <div className="why">
-            <p className="label">Why don’t you agree? Write your answer (Optional)</p>
-            <textarea
-              rows={4}
-              value={answers[id + '-why'] || ''}
-              placeholder="(Optional) What is wrong, missing or unsafe, and what would you answer instead?"
-              onChange={(e) => handleValueChange(id + '-why', e.target.value)}
-            />
-          </div>
-        )}
-
-        {flagged && (
-          <div className="why ruling" style={{ marginTop: '10px' }}>
-            <p className="label" style={{ color: 'var(--warn)' }}>
-              Your ruling on the reviewer note (Optional)
-            </p>
-            <textarea
-              rows={3}
-              value={answers[id + '-rule'] || ''}
-              placeholder="(Optional) Rule on the point the candidate flagged"
-              onChange={(e) => handleValueChange(id + '-rule', e.target.value)}
-            />
-          </div>
-        )}
-      </div>
-    );
-  };
-
   // Render Instructions Section
   const renderIntro = () => {
     const heads = { 'For each case you will see': 1, 'How to answer': 1 };
-    let listOpen = false;
 
     return (
       <div>
@@ -437,7 +584,7 @@ function ConsultantExamPortal() {
         <section className="card">
           <p className="label">How this form works</p>
           <p style={{ margin: 0 }}>
-            Under every candidate answer, choose <b>Yes, I agree</b> or <b>No, I don’t agree</b>. An explanation box opens for both Agree and Disagree where you can write your rationale, clinical feedback, or what you would answer instead. All explanations are optional.
+            Under every candidate answer, choose <b>Yes, I agree</b> or <b>No, I don’t agree</b>. An explanation box opens for both Agree and Disagree where you can write your rationale, clinical feedback, or what you would answer instead.
           </p>
         </section>
 
@@ -474,16 +621,17 @@ function ConsultantExamPortal() {
           <span>Outside my scope (skip this case)</span>
         </label>
 
-        {/* Optional Opening Question */}
+        {/* Opening Question */}
         {c.opening && (
           <section className="card open">
             <p className="label">{c.opening.id} · answer before marking this case</p>
             <p className="q">{c.opening.q}</p>
-            <textarea
+            <SmoothTextarea
+              dataKey={p + 'open'}
               rows={3}
               value={answers[p + 'open'] || ''}
               placeholder="Your answer:"
-              onChange={(e) => handleValueChange(p + 'open', e.target.value)}
+              onCommit={handleCommit}
             />
           </section>
         )}
@@ -533,7 +681,16 @@ function ConsultantExamPortal() {
                   <b className="t">Candidate’s answer</b>
                   <div>{renderRichText(q.a)}</div>
                 </div>
-                <AgreeBlock id={qId} flagged={hasFlag(q.a)} />
+                <AgreeBlock
+                  id={qId}
+                  flagged={hasFlag(q.a)}
+                  val={answers[qId]}
+                  agreeWhy={answers[qId + '-agree-why']}
+                  why={answers[qId + '-why']}
+                  rule={answers[qId + '-rule']}
+                  onRadioSelect={handleValueChange}
+                  onCommit={handleCommit}
+                />
               </div>
             );
           })}
@@ -550,7 +707,16 @@ function ConsultantExamPortal() {
               <b className="t">Candidate’s answer</b>
               <div>{renderRichText(c.follow.a)}</div>
             </div>
-            <AgreeBlock id={p + 'follow'} flagged={hasFlag(c.follow.a)} />
+            <AgreeBlock
+              id={p + 'follow'}
+              flagged={hasFlag(c.follow.a)}
+              val={answers[p + 'follow']}
+              agreeWhy={answers[p + 'follow-agree-why']}
+              why={answers[p + 'follow-why']}
+              rule={answers[p + 'follow-rule']}
+              onRadioSelect={handleValueChange}
+              onCommit={handleCommit}
+            />
           </section>
         )}
 
@@ -566,17 +732,27 @@ function ConsultantExamPortal() {
                   </b>
                   <div>{renderRichText(f)}</div>
                 </div>
-                <AgreeBlock id={p + 'f' + fIdx} flagged={hasFlag(f)} />
+                <AgreeBlock
+                  id={p + 'f' + fIdx}
+                  flagged={hasFlag(f)}
+                  val={answers[p + 'f' + fIdx]}
+                  agreeWhy={answers[p + 'f' + fIdx + '-agree-why']}
+                  why={answers[p + 'f' + fIdx + '-why']}
+                  rule={answers[p + 'f' + fIdx + '-rule']}
+                  onRadioSelect={handleValueChange}
+                  onCommit={handleCommit}
+                />
               </div>
             ))}
 
             <div className="item">
               <p className="q">Add any answer you would also fail outright.</p>
-              <textarea
+              <SmoothTextarea
+                dataKey={p + 'fails-add'}
                 rows={3}
                 value={answers[p + 'fails-add'] || ''}
-                placeholder="Optional: any other answer you would fail outright"
-                onChange={(e) => handleValueChange(p + 'fails-add', e.target.value)}
+                placeholder="Any other answer you would fail outright"
+                onCommit={handleCommit}
               />
             </div>
           </section>
@@ -622,11 +798,12 @@ function ConsultantExamPortal() {
               </label>
             </div>
 
-            <textarea
+            <SmoothTextarea
+              dataKey={p + 'second'}
               rows={4}
               value={answers[p + 'second'] || ''}
               placeholder="Your reasoning"
-              onChange={(e) => handleValueChange(p + 'second', e.target.value)}
+              onCommit={handleCommit}
             />
           </section>
         )}
@@ -676,11 +853,12 @@ function ConsultantExamPortal() {
           <p className="q">
             Did the examiners miss a decision you would have tested? Is any question above unnecessary?
           </p>
-          <textarea
+          <SmoothTextarea
+            dataKey={p + 'missed'}
             rows={3}
             value={answers[p + 'missed'] || ''}
             placeholder="Your feedback:"
-            onChange={(e) => handleValueChange(p + 'missed', e.target.value)}
+            onCommit={handleCommit}
           />
 
           <p className="q" style={{ marginTop: '16px' }}>
@@ -700,11 +878,12 @@ function ConsultantExamPortal() {
               </label>
             ))}
           </div>
-          <input
+          <SmoothInput
+            dataKey={p + 'real-why'}
             type="text"
             value={answers[p + 'real-why'] || ''}
             placeholder="One line why"
-            onChange={(e) => handleValueChange(p + 'real-why', e.target.value)}
+            onCommit={handleCommit}
           />
         </section>
 
@@ -738,11 +917,12 @@ function ConsultantExamPortal() {
       </div>
       <section className="card">
         <p className="q">{EXAM_DATA.closing}</p>
-        <textarea
+        <SmoothTextarea
+          dataKey="closing"
           rows={5}
           value={answers['closing'] || ''}
-          placeholder="(Optional) Enter your answer or impressions..."
-          onChange={(e) => handleValueChange('closing', e.target.value)}
+          placeholder="Enter your answer or impressions..."
+          onCommit={handleCommit}
         />
       </section>
 
@@ -780,7 +960,7 @@ function ConsultantExamPortal() {
   const adCases = CASES.filter((c) => c.part !== 'Pediatric');
 
   return (
-    <div className="consultant-exam-root">
+    <div className="consultant-exam-root" ref={examContainerRef}>
       <div className="wrap">
         {/* Sticky Rail Sidebar */}
         <nav className="rail" aria-label="Sections">
