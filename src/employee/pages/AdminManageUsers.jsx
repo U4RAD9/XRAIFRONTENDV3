@@ -45,6 +45,7 @@ function AdminManageUsers() {
       const mappedUsers = (Array.isArray(data) ? data : []).map(u => ({
         id: u.id,
         username: u.user_name,
+        fullName: u.full_name || '',
         password: u.password || '',
         mobile: u.mobile_number || '',
         userType: u.user_type_name || 'Patient'
@@ -66,13 +67,16 @@ function AdminManageUsers() {
   const filteredUsers = users;
 
   const openNewModal = () => {
-    setCurrentUser({ id: null, username: '', password: '', mobile: '', userType: 'Patient' });
+    setCurrentUser({ id: null, username: '', fullName: '', password: '', mobile: '', userType: 'Consultant' });
     setIsEditing(false);
     setShowModal(true);
   };
 
   const handleEdit = (user) => {
-    setCurrentUser(user);
+    setCurrentUser({
+      ...user,
+      fullName: user.fullName || ''
+    });
     setIsEditing(true);
     setShowModal(true);
   };
@@ -137,7 +141,7 @@ function AdminManageUsers() {
           <table className="min-w-full bg-white">
             <thead className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
               <tr>
-                <th className="py-4 px-5 text-start font-bold">Username</th>
+                <th className="py-4 px-5 text-start font-bold">Username / Name</th>
                 <th className="py-4 px-5 text-start font-bold">Password</th>
                 <th className="py-4 px-5 text-start font-bold">Mobile Number</th>
                 <th className="py-4 px-5 text-start font-bold">User Type</th>
@@ -158,7 +162,12 @@ function AdminManageUsers() {
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-blue-50/50 transition duration-150">
-                    <td className="py-4 px-6 text-start font-bold text-gray-800">{user.username}</td>
+                    <td className="py-4 px-6 text-start">
+                      <div className="font-bold text-gray-800">{user.username}</div>
+                      {user.fullName && user.fullName !== user.username && (
+                        <div className="text-xs text-teal-700 font-medium">{user.fullName}</div>
+                      )}
+                    </td>
                     <td className="py-4 px-6 text-start">{user.password}</td>
                     <td className="py-4 px-6 text-start">{user.mobile}</td>
                     <td className="py-4 px-6 text-start">{user.userType}</td>
@@ -200,7 +209,17 @@ function AdminManageUsers() {
                   value={currentUser.username}
                   onChange={(e) => setCurrentUser({...currentUser, username: e.target.value})}
                   className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#00acc1]"
-                  placeholder="Enter Username"
+                  placeholder="Enter Username (e.g. dr.sharma)"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name / Doctor Name (Optional)</label>
+                <input 
+                  type="text" 
+                  value={currentUser.fullName || ''}
+                  onChange={(e) => setCurrentUser({...currentUser, fullName: e.target.value})}
+                  className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#00acc1]"
+                  placeholder="e.g. Dr. Ananya Sharma"
                 />
               </div>
               <div className="mb-4">
@@ -234,6 +253,7 @@ function AdminManageUsers() {
                 >
                   <option value="SuperAdmin">SuperAdmin</option>
                   <option value="Admin">Admin</option>
+                  <option value="Consultant">Consultant</option>
                   <option value="Technician">Technician</option>
                   <option value="Patient">Patient</option>
                   <option value="Partner">Partner</option>

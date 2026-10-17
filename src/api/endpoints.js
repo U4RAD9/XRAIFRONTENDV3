@@ -49,4 +49,9 @@ export const ENDPOINTS = {
   PATIENTS: '/patients/',
   DPDP_CONSENTS: '/dpdp-consents/',
   DPDP_MY_CONSENT: '/dpdp-consents/my-consent/',
+
+  // Consultant Exam Portal
+  CONSULTANT_EXAM: '/consultant/exam/',
+  CONSULTANT_EXAM_SUBMIT: '/consultant/exam/submit/',
 };
+

@@ -92,13 +92,16 @@ function Login() {
         sessionStorage.setItem('Gender', res.data.Gender || '');
         sessionStorage.setItem('MobileNumber', res.data.MobileNumber || res.data.UserName || '');
 
-        if (res.data.UserType === "Admin") {
+        const uType = (res.data.UserType || '').toLowerCase();
+        if (uType === "admin") {
           navigate('/admin/dashboard', { replace: true });
-        } else if (res.data.UserType === "SuperAdmin" || res.data.UserType === "Superadmin") {
+        } else if (uType === "superadmin") {
           navigate('/superadmin/dashboard', { replace: true });
-        } else if (res.data.UserType === "Partner") {
+        } else if (uType === "consultant") {
+          navigate('/consultant/exam', { replace: true });
+        } else if (uType === "partner") {
           navigate('/partner/dashboard', { replace: true });
-        } else if (res.data.UserType === "Technician") {
+        } else if (uType === "technician") {
           navigate('/technician/dashboard', { replace: true });
         } else {
           navigate('/patient/dashboard', { replace: true });
@@ -153,13 +156,16 @@ function Login() {
         sessionStorage.setItem('Gender', res.data.Gender || '');
         sessionStorage.setItem('MobileNumber', res.data.MobileNumber || res.data.UserName || '');
 
-        if (res.data.UserType === "Admin") {
+        const uType = (res.data.UserType || '').toLowerCase();
+        if (uType === "admin") {
           navigate('/admin/dashboard', { replace: true });
-        } else if (res.data.UserType === "SuperAdmin" || res.data.UserType === "Superadmin") {
+        } else if (uType === "superadmin") {
           navigate('/superadmin/dashboard', { replace: true });
-        } else if (res.data.UserType === "Partner") {
+        } else if (uType === "consultant") {
+          navigate('/consultant/exam', { replace: true });
+        } else if (uType === "partner") {
           navigate('/partner/dashboard', { replace: true });
-        } else if (res.data.UserType === "Technician") {
+        } else if (uType === "technician") {
           navigate('/technician/dashboard', { replace: true });
         } else {
           navigate('/patient/dashboard', { replace: true });
