@@ -415,13 +415,6 @@ function ConsultantExamPortal() {
 
     return (
       <div>
-        <div className="optional-notice-banner">
-          <i className="fas fa-info-circle text-[#0f6f7a] text-lg mr-2"></i>
-          <div>
-            <strong>Non-Mandatory Evaluation:</strong> None of the questions in this examination packet are compulsory. You may evaluate as many or as few questions or cases as you choose, and submit your evaluation at any time.
-          </div>
-        </div>
-
         <div className="casehead">
           <h2>Instructions</h2>
         </div>
@@ -465,13 +458,6 @@ function ConsultantExamPortal() {
 
     return (
       <div>
-        <div className="optional-notice-banner">
-          <i className="fas fa-info-circle text-[#0f6f7a] text-lg mr-2"></i>
-          <div>
-            <strong>Questions are optional:</strong> You are free to answer whatever you wish and skip questions or cases. Every change saves automatically under your consultant ID.
-          </div>
-        </div>
-
         <div className="casehead">
           <h2>Case {c.n}</h2>
           <span className="chip">
@@ -746,13 +732,6 @@ function ConsultantExamPortal() {
   // Render Closing Question Section
   const renderClosing = () => (
     <div>
-      <div className="optional-notice-banner">
-        <i className="fas fa-info-circle text-[#0f6f7a] text-lg mr-2"></i>
-        <div>
-          <strong>Optional Question:</strong> This final question is optional. You may fill it out or submit your packet immediately.
-        </div>
-      </div>
-
       <div className="casehead">
         <h2>Closing question</h2>
         <span className="chip">After the packet</span>
