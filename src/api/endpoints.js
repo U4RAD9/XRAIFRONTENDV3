@@ -50,8 +50,13 @@ export const ENDPOINTS = {
   DPDP_CONSENTS: '/dpdp-consents/',
   DPDP_MY_CONSENT: '/dpdp-consents/my-consent/',
 
-  // Consultant Exam Portal
+  // Consultant Exam Portal & Admin Management
   CONSULTANT_EXAM: '/consultant/exam/',
   CONSULTANT_EXAM_SUBMIT: '/consultant/exam/submit/',
+  CONSULTANT_SUBMISSIONS: '/consultant/submissions/',
+  CONSULTANT_SUBMISSION_DETAIL: (id) => `/consultant/submissions/${id}/`,
+  CONSULTANT_SUBMISSION_DOWNLOAD: (id) => `/consultant/submissions/${id}/download/`,
+  CONSULTANT_SUBMISSIONS_EXPORT_CSV: '/consultant/submissions/export-csv/',
 };
+
 

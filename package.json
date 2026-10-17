@@ -27,6 +27,7 @@
         "react-leaflet": "^5.0.0",
         "react-router-dom": "^7.18.2",
         "react-toastify": "^11.1.0",
-        "swiper": "^14.0.7"
+        "swiper": "^14.0.7",
+        "xlsx": "^0.18.5"
     }
 }

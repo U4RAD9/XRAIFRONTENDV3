@@ -97,6 +97,8 @@ function Login() {
           navigate('/admin/dashboard', { replace: true });
         } else if (uType === "superadmin") {
           navigate('/superadmin/dashboard', { replace: true });
+        } else if (uType === "consultant admin" || uType === "consultantadmin" || uType === "consultant_admin") {
+          navigate('/consultant-admin', { replace: true });
         } else if (uType === "consultant") {
           navigate('/consultant/exam', { replace: true });
         } else if (uType === "partner") {
@@ -161,6 +163,8 @@ function Login() {
           navigate('/admin/dashboard', { replace: true });
         } else if (uType === "superadmin") {
           navigate('/superadmin/dashboard', { replace: true });
+        } else if (uType === "consultant admin" || uType === "consultantadmin" || uType === "consultant_admin") {
+          navigate('/consultant-admin', { replace: true });
         } else if (uType === "consultant") {
           navigate('/consultant/exam', { replace: true });
         } else if (uType === "partner") {

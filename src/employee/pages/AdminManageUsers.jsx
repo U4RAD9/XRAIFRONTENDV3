@@ -253,6 +253,7 @@ function AdminManageUsers() {
                 >
                   <option value="SuperAdmin">SuperAdmin</option>
                   <option value="Admin">Admin</option>
+                  <option value="Consultant Admin">Consultant Admin</option>
                   <option value="Consultant">Consultant</option>
                   <option value="Technician">Technician</option>
                   <option value="Patient">Patient</option>

@@ -53,6 +53,9 @@ import SuperAdminLayout from './superadmin/components/SuperAdminLayout';
 import SuperAdminConsentManagement from './superadmin/pages/SuperAdminConsentManagement';
 import ConsultantLayout from './consultant/components/ConsultantLayout';
 import ConsultantExamPortal from './consultant/pages/ConsultantExamPortal';
+import ConsultantAdminLayout from './consultantAdmin/components/ConsultantAdminLayout';
+import ConsultantAdminEvaluations from './consultantAdmin/pages/ConsultantAdminEvaluations';
+import ConsultantAdminManageDoctors from './consultantAdmin/pages/ConsultantAdminManageDoctors';
 
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
@@ -148,6 +151,13 @@ function App() {
             <Route index element={<SuperAdminConsentManagement />} />
             <Route path="dashboard" element={<SuperAdminConsentManagement />} />
             <Route path="consents" element={<SuperAdminConsentManagement />} />
+          </Route>
+
+          {/* Dedicated Consultant Admin Portal (Strictly Isolated from Admin & SuperAdmin) */}
+          <Route path="/consultant-admin" element={<ConsultantAdminLayout />}>
+            <Route index element={<ConsultantAdminEvaluations />} />
+            <Route path="evaluations" element={<ConsultantAdminEvaluations />} />
+            <Route path="doctors" element={<ConsultantAdminManageDoctors />} />
           </Route>
 
           {/* Consultant Clinical Evaluation Portal */}
