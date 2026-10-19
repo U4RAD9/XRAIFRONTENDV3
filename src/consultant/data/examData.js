@@ -171,7 +171,7 @@ export const EXAM_DATA = {
       "notes": "Patient info for task 1431\n\nReview of systems: No fevers. No rashes. No abdominal pain. No bowel changes.\nNo signiﬁcant family history.\nShe has no history of smoking or vaping.\n\nMedications:\nNo medications\n\nShe has no allergies to medications.\n\nVital signs during intake are as follows:\nHeight: 64 inches\nWeight: 205 pounds, down 10 pounds from last visit 3 months ago\nTemp (°F): 98.4\nBlood pressure: 116/73 mmHg\nHeart rate: 89 bpm\nRespiratory rate: 18\nO2 saturation: 98% in RA\n\nPhysical exam reveals the following:\nGeneral: Alert and oriented to person, place, and time.\nHEENT: Pupils are round and reactive to light\nCardiovascular: Regular rate and rhythm\nPulmonary: Clear to auscultation\nGI/GU: Abdomen soft, non-tender, no masses, normal bowel sounds\nMSK: full range of motion in all joints, strength equal bilaterally, reﬂexes normal throughout\nPsych: Pleasant a ect",
       "qs": [
         {
-          "q": "Q1. Mother cannot afford labs today. Which three findings already in front of you predict this girl's risk of adult cardiovascular events about as well as a lipid panel would?",
+          "q": "Q1. Given this adolescent's obesity, blood pressure, lifestyle and financial circumstances, how would you assess her cardiovascular risk and prioritize preventive care? Explain what you can assess without laboratory testing, what uncertainty remains, and how you would arrange appropriate lipid screening.",
           "a": "Body mass index (adiposity or weight status), blood pressure, and smoking or tobacco status (vaping or any tobacco accepted). All three must be named. Citing the long-term childhood cohort evidence (i3C, Young Finns, Bogalusa) or the 2024 Pediatrics analysis is a bonus. Adding family history as a fourth does not fail."
         },
         {
@@ -183,7 +183,7 @@ export const EXAM_DATA = {
           "a": "Normal. For adolescents aged 13 and over the adult thresholds apply (normal is below 120/80 under the 2017 AAP guideline); a correct percentile-table approach also passes. The examinee should note it is close to the elevated range and must be re-measured with a correctly sized cuff given her obesity. Labelling it elevated or hypertensive fails."
         },
         {
-          "q": "Q4. So how many risk factors does she have, and does not having the lipid panel today change what you do for her?",
+          "q": "Q4. How do the patient's current risk factors influence your management plan? If lipid testing is unaffordable today, what preventive measures can you start now, and how would you arrange appropriate screening later?",
           "a": "One modifiable risk factor (obesity); she is a nonsmoker and non-vaper with normal blood pressure. Deferring the lipid panel does not change today's management, because lifestyle treatment is first-line regardless. There should be a plan to obtain lipid screening when feasible (for example a non-fasting non-HDL cholesterol, Medicaid/CHIP enrollment, a federally qualified health center or sliding-scale clinic), accepted in any form."
         },
         {
@@ -830,7 +830,7 @@ export const EXAM_DATA = {
           "a": "Secondary syphilis is the most probable diagnosis, on the basis of the new scaly red papules on the palms and soles, which distinguish this from his known plaque psoriasis on the knees. Palmoplantar psoriasis may be mentioned as the alternative but must not be the final answer."
         },
         {
-          "q": "Q2. Which two tests do you order to confirm that diagnosis, and why those two?",
+          "q": "Q2. What investigations would you use to evaluate suspected secondary syphilis? Explain how you would interpret the results, establish a baseline for monitoring treatment, and decide what to do if the results are negative or discordant despite strong clinical suspicion.",
           "a": "A quantitative nontreponemal test (RPR, VDRL or TRUST) plus a treponemal test (TPPA, FTA-ABS, MHA-TP, TP-EIA or CIA), one of each class; either the traditional or the reverse-sequence order passes, and any named assay within each class is equivalent. Two tests from the same class, or a skin biopsy as one of the two, fails."
         },
         {
@@ -914,7 +914,7 @@ export const EXAM_DATA = {
           "a": "Necrotizing (malignant) otitis externa must be named and argued against using the examination: no granulation tissue at the bony-cartilaginous junction, no tenderness, no cranial nerve deficits, afebrile. The examinee must set explicit escalation triggers: ESR/CRP, CT or MRI of the temporal bone, and urgent ENT referral if pain out of proportion, granulation tissue, cranial neuropathy or failure to improve on antifungal treatment develop. An answer that silently omits this diagnosis fails."
         },
         {
-          "q": "Q3. Name at least three risk factors this particular patient has for the condition you have diagnosed.",
+          "q": "Q3. Which features of this patient's history and examination support your leading diagnosis, and which risk factors are most relevant? What serious alternative diagnosis must you consider, and how would your assessment guide further investigation, treatment and follow-up?",
           "a": "Any three of: topical and/or systemic antibiotic exposure (ofloxacin, ciprofloxacin), diabetes mellitus with impaired immunity, travel to a hot humid climate with likely water exposure, repeated ear lavage and canal trauma with loss of protective cerumen, obesity. Empagliflozin (an SGLT2 inhibitor) is acceptable as a supplementary factor but should not count as one of the three. [Reviewer: please confirm whether the SGLT2-inhibitor mucocutaneous candidiasis risk should be accepted as an otomycosis risk factor.]"
         },
         {
