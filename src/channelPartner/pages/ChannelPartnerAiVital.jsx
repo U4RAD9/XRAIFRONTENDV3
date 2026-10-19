@@ -25,7 +25,7 @@ import {
 // catbackend does not send CORS headers, so in dev we route through the Vite
 // proxy (`/catbackend`, same origin) to avoid a preflight/CORS failure.
 const ANALYZE_VITALS_ABS = 'https://catbackend.xraidigital.com/api/vitals/analyze-vitals/';
-const ANALYZE_VITALS_PROXY = '/catbackend/api/vitals/analyze-vitals/';
+const ANALYZE_VITALS_PROXY = 'https://catbackend.xraidigital.com/api/vitals/analyze-vitals/';
 const ANALYZE_VITALS_URL = import.meta.env.DEV ? ANALYZE_VITALS_PROXY : ANALYZE_VITALS_ABS;
 
 const getToken = () => (sessionStorage.getItem('Token') || '').trim();
@@ -148,11 +148,10 @@ function YesNoField({ label, value, onChange, disabled, error }) {
               type="button"
               disabled={disabled}
               onClick={() => onChange(o.value)}
-              className={`px-5 py-2 rounded-xl text-sm font-bold border ${
-                active
+              className={`px-5 py-2 rounded-xl text-sm font-bold border ${active
                   ? 'bg-[#11A8A4] text-white border-[#11A8A4]'
                   : 'bg-white text-gray-600 border-gray-300 hover:border-[#11A8A4]'
-              } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {o.label}
             </button>
@@ -209,11 +208,10 @@ function MultiField({ label, value, options, onChange, disabled, error, join }) 
               type="button"
               disabled={disabled}
               onClick={() => toggle(o.value)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${
-                active
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${active
                   ? 'bg-[#11A8A4] text-white border-[#11A8A4]'
                   : 'bg-white text-gray-600 border-gray-300 hover:border-[#11A8A4]'
-              } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {active ? <i className="fas fa-check mr-1"></i> : null}{o.label}
             </button>
@@ -493,7 +491,7 @@ function ChannelPartnerAiVital() {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => {});
+        await videoRef.current.play().catch(() => { });
       }
       setCamStage('preview');
     } catch (err) {
@@ -507,7 +505,7 @@ function ChannelPartnerAiVital() {
   useEffect(() => {
     if (camStage === 'preview' && streamRef.current && videoRef.current) {
       videoRef.current.srcObject = streamRef.current;
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch(() => { });
     }
   }, [camStage]);
 
@@ -896,13 +894,12 @@ function ChannelPartnerAiVital() {
               key={s.key}
               type="button"
               onClick={() => handleStepClick(i)}
-              className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                i === step
+              className={`px-3 py-1 rounded-full text-xs font-bold border ${i === step
                   ? 'bg-[#11A8A4] text-white border-[#11A8A4]'
                   : i < step
-                  ? 'bg-[#11A8A4]/10 text-[#0e8c89] border-[#11A8A4]/30'
-                  : 'bg-white text-gray-500 border-gray-200'
-              }`}
+                    ? 'bg-[#11A8A4]/10 text-[#0e8c89] border-[#11A8A4]/30'
+                    : 'bg-white text-gray-500 border-gray-200'
+                }`}
             >
               {i + 1}. {s.short}
             </button>
