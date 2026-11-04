@@ -10,7 +10,8 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem('Token') || localStorage.getItem('Token');
+    const isNative = typeof window !== 'undefined' && Boolean(window.Capacitor?.isNativePlatform?.());
+    const token = sessionStorage.getItem('Token') || (isNative ? localStorage.getItem('Token') : null);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
