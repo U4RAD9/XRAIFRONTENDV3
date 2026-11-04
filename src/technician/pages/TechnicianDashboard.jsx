@@ -10,10 +10,20 @@ import Pagination from '../../components/Pagination';
 
 import TechnicianBookingCard from '../components/TechnicianBookingCard';
 
-import { Capacitor, registerPlugin } from '@capacitor/core';
+// Native Capacitor bridge helpers (bypasses direct @capacitor/core import so web bundle never fails)
+const isNativePlatform = () => {
+  return typeof window !== 'undefined' 
+    && typeof window.Capacitor !== 'undefined' 
+    && typeof window.Capacitor.isNativePlatform === 'function' 
+    && window.Capacitor.isNativePlatform();
+};
 
-const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
-const NativeTracking = registerPlugin('NativeTracking');
+const getNativeTracking = () => {
+  if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins) {
+    return window.Capacitor.Plugins.NativeTracking || null;
+  }
+  return null;
+};
 
 const mediaBaseURL = axiosInstance.defaults.baseURL.replace('/api', '/media');
 
@@ -53,7 +63,7 @@ function TechnicianDashboard() {
 
     if (!activeTrackingBookingId) return;
 
-    const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform();
+    const isNative = isNativePlatform();
 
     // On native mobile APK, NativeTracking (Foreground Service in Java) handles tracking
     // with non-reference-counted WakeLock, dedicated background looper, and 12s heartbeat.
@@ -107,18 +117,18 @@ function TechnicianDashboard() {
   }, [activeTrackingBookingId]);
 
     const handleToggleTrack = (bookingId) => {
-    const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform();
+    const isNative = isNativePlatform();
 
     if (activeTrackingBookingId === bookingId) {
       if (isNative) {
-        NativeTracking.stopTracking().catch((err) => console.error('Error stopping native tracking:', err));
+        getNativeTracking()?.stopTracking()?.catch((err) => console.error('Error stopping native tracking:', err));
       }
       setActiveTrackingBookingId(null);
     } else {
       if (isNative) {
         const token = sessionStorage.getItem('Token') || localStorage.getItem('Token');
         const userId = sessionStorage.getItem('UserID') || localStorage.getItem('UserID');
-        NativeTracking.startTracking({
+        getNativeTracking()?.startTracking({
           bookingId: String(bookingId),
           userId: String(userId || ''),
           token: String(token || '')
@@ -246,9 +256,9 @@ function TechnicianDashboard() {
         alert('Test status updated to Completed!');
 
         if (activeTrackingBookingId === id) {
-          const isNative = typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform();
+          const isNative = isNativePlatform();
           if (isNative) {
-            NativeTracking.stopTracking().catch(() => {});
+            getNativeTracking()?.stopTracking()?.catch(() => {});
           }
           setActiveTrackingBookingId(null);
         }
