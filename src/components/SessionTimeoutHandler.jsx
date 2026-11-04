@@ -1,10 +1,25 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 
 const SessionTimeoutHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const timeoutId = useRef(null);
+
+  const isNative = typeof Capacitor !== 'undefined' 
+    && typeof Capacitor.isNativePlatform === 'function' 
+    && Capacitor.isNativePlatform();
+
+  const userType = (sessionStorage.getItem('UserType') || localStorage.getItem('UserType') || '').toLowerCase();
+  const isTechnician = userType === 'technician' || location.pathname.startsWith('/technician');
+
+  // REMOVE AUTO-LOGOUT FROM TECHNICIANS & MOBILE APK:
+  // Technicians on the road/field and mobile app users must NEVER be abruptly logged out!
+  // All other user roles (Admin, Consultant, SuperAdmin, Partner, Patient) on desktop web keep the 30-min security timeout.
+  if (isTechnician || isNative) {
+    return null;
+  }
 
   const logoutUser = () => {
     // Only logout if they actually have a token/session active
@@ -24,25 +39,20 @@ const SessionTimeoutHandler = () => {
   };
 
   useEffect(() => {
-    // Events that signify user activity
     const events = ['load', 'mousemove', 'mousedown', 'click', 'scroll', 'keypress'];
 
     const resetTimerWrapper = () => {
-      // Only reset timer if user is currently logged in to avoid running in background for public visitors unnecessarily
       if (sessionStorage.getItem('Token') || sessionStorage.getItem('UserID')) {
         resetTimer();
       }
     };
 
-    // Initialize timer on mount or route change
     resetTimerWrapper();
 
-    // Attach event listeners
     events.forEach((event) => {
       window.addEventListener(event, resetTimerWrapper);
     });
 
-    // Cleanup on unmount
     return () => {
       if (timeoutId.current) {
         clearTimeout(timeoutId.current);
@@ -53,7 +63,7 @@ const SessionTimeoutHandler = () => {
     };
   }, [location.pathname]);
 
-  return null; // This is a logic-only component, it renders nothing visible
+  return null;
 };
 
 export default SessionTimeoutHandler;

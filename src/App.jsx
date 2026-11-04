@@ -58,9 +58,24 @@ import ConsultantAdminEvaluations from './consultantAdmin/pages/ConsultantAdminE
 import ConsultantAdminManageDoctors from './consultantAdmin/pages/ConsultantAdminManageDoctors';
 import ChannelPartnerAiVital from './channelPartner/pages/ChannelPartnerAiVital';
 
+// Auto-restore session for Technicians from localStorage if app was restarted
+try {
+  const storedToken = localStorage.getItem('Token');
+  const storedUserType = (localStorage.getItem('UserType') || '').toLowerCase();
+  if (storedToken && (storedUserType === 'technician' || !sessionStorage.getItem('Token'))) {
+    if (!sessionStorage.getItem('Token')) {
+      sessionStorage.setItem('Token', storedToken);
+      sessionStorage.setItem('UserID', localStorage.getItem('UserID') || '');
+      sessionStorage.setItem('UserName', localStorage.getItem('UserName') || '');
+      sessionStorage.setItem('FullName', localStorage.getItem('FullName') || '');
+      sessionStorage.setItem('UserType', localStorage.getItem('UserType') || '');
+    }
+  }
+} catch (e) {}
+
 // Set up global Axios interceptor for Authentication
 axios.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('Token');
+  const token = sessionStorage.getItem('Token') || localStorage.getItem('Token');
   if (token) {
     // Preserve explicit Token auth for cbackend/rural-health APIs
     const hasAuth = config.headers.Authorization || config.headers.authorization;
