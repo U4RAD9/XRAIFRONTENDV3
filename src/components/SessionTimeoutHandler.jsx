@@ -1,15 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
 
 const SessionTimeoutHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const timeoutId = useRef(null);
 
-  const isNative = typeof Capacitor !== 'undefined' 
-    && typeof Capacitor.isNativePlatform === 'function' 
-    && Capacitor.isNativePlatform();
+  const isNative = typeof window !== 'undefined' 
+    && typeof window.Capacitor !== 'undefined' 
+    && typeof window.Capacitor.isNativePlatform === 'function' 
+    && window.Capacitor.isNativePlatform();
 
   const userType = (sessionStorage.getItem('UserType') || localStorage.getItem('UserType') || '').toLowerCase();
   const isTechnician = userType === 'technician' || location.pathname.startsWith('/technician');
